@@ -31,7 +31,7 @@ export default function Sidebar({ onNavigate }) {
       </div>
 
       <ul className="nav" role="list" style={{ display: 'grid', gap: 6 }}>
-        {/* Top group: only Dashboard. Admin moved to render directly below Profile for requested ordering. */}
+        {/* Top group: only Dashboard. Admin must NOT appear here. */}
         {isAuthed && (
           <li>
             <NavLink to="/dashboard" onClick={onNavigate} className={linkClass} end>
@@ -41,7 +41,7 @@ export default function Sidebar({ onNavigate }) {
           </li>
         )}
 
-        {/* Remaining navigation (ordered): Courses, Quizzes, role-specific, Profile or Auth */}
+        {/* Remaining navigation (ordered): Courses, Quizzes, role-specific ... */}
         <li>
           <NavLink to="/courses" onClick={onNavigate} className={linkClass}>
             <span aria-hidden>🎓</span>
@@ -90,20 +90,19 @@ export default function Sidebar({ onNavigate }) {
                 <span>Profile</span>
               </NavLink>
             </li>
+            {/*
+              PUBLIC_INTERFACE
+              Admin navigation item - visible only to admin role.
+
+              LOCKED PLACEMENT: Do not move, duplicate, or conditionally re-insert this item elsewhere.
+              It must remain immediately AFTER the Profile item. If Profile is conditionally hidden,
+              this Admin item should also remain in this block so it naturally follows Profile when present.
+
+              Active state is handled by NavLink via linkClass.
+            */}
             {r === 'admin' && (
               <li>
-                {/* PUBLIC_INTERFACE
-                  Admin navigation item - visible only to admin role.
-                  LOCKED PLACEMENT: Do not move this item elsewhere. It must remain
-                  immediately after the Profile item to satisfy UI requirements.
-                  Active state is handled by NavLink via linkClass.
-                */}
-                <NavLink
-                  to="/admin"
-                  onClick={onNavigate}
-                  className={linkClass}
-                  end
-                >
+                <NavLink to="/admin" onClick={onNavigate} className={linkClass} end>
                   <span aria-hidden>🛠️</span>
                   <span>Admin</span>
                 </NavLink>
