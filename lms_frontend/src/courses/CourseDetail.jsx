@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { convertDriveLink, toEmbedUrl, isGoogleDriveUrl } from '../utils/videoUrl';
+import VideoRedirect from '../components/videos/VideoRedirect';
 
 /**
  * PUBLIC_INTERFACE
@@ -16,6 +17,7 @@ export default function CourseDetail() {
   const { status, role, user } = useAuth();
 
   const [course, setCourse] = useState(null);
+  const [openExternally, setOpenExternally] = useState(false);
   const [loading, setLoading] = useState(true);
   const [videos, setVideos] = useState([]);
   const [err, setErr] = useState('');
@@ -255,16 +257,37 @@ export default function CourseDetail() {
  * VideoPreview renders a Google Drive preview iframe when possible; otherwise renders a link.
  */
 function VideoPreview({ url }) {
+  // Hooks must be top-level and un-conditional
+  const [redirect, setRedirect] = React.useState(false);
   const embed = toEmbedUrl(url);
+
+  // Handle external redirect option
+  if (redirect) {
+    return <VideoRedirect videoUrl={url} replace={false} />;
+  }
+
+  // If unembeddable, present small UI with options to open externally
   if (!embed) {
     return (
       <div style={{ marginTop: 8 }}>
-        <a href={url} target="_blank" rel="noreferrer" className="link">
-          Open video
-        </a>
+        <div className="rounded-md border p-3" style={{ borderColor: 'rgba(229,231,235,1)' }}>
+          <p className="text-sm" style={{ margin: 0, color: '#374151' }}>
+            This video cannot be embedded. You can open it externally.
+          </p>
+          <div className="flex gap-2" style={{ marginTop: 8 }}>
+            <a href={url} target="_blank" rel="noreferrer" className="btn">
+              Open in new tab
+            </a>
+            <button type="button" className="btn" onClick={() => setRedirect(true)}>
+              Open externally (redirect)
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
+
+  // Default (Drive recognized) embed path remains unchanged
   return (
     <div style={{ marginTop: 8 }}>
       <div className="aspect-video w-full rounded-md overflow-hidden border border-gray-200">
