@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import Sidebar from './Sidebar';
+
 
 /**
  * PUBLIC_INTERFACE
@@ -19,40 +19,25 @@ export default function Container({ children }) {
     return () => document.removeEventListener('keydown', closeOnEscape);
   }, [closeOnEscape]);
 
-  // Layout: sidebar on the left, content on the right. Removed TopBar and any reserved top spacing.
+  // Layout: single column content area. Sidebar removed per UI cleanup.
   return (
     <div className="app-shell" style={{ background: 'var(--color-background)', color: 'var(--color-text)' }}>
       <a href="#main" className="skip-link">Skip to content</a>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', minHeight: '100vh' }}>
-        <aside
-          className="app-shell__sidebar"
-          data-open={sidebarOpen}
-          aria-hidden={!sidebarOpen}
-          aria-label="Primary"
-          style={{
-            borderRight: '1px solid rgba(17,24,39,0.08)',
-            background: 'var(--color-surface)'
-          }}
-        >
-          <Sidebar onNavigate={() => setSidebarOpen(false)} />
-        </aside>
-
-        <main
-          id="main"
-          className="app-shell__content"
-          role="main"
-          tabIndex={-1}
-          style={{
-            padding: 24,
-            background: 'var(--color-background)'
-          }}
-        >
-          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-            {children}
-          </div>
-        </main>
-      </div>
+      <main
+        id="main"
+        className="app-shell__content"
+        role="main"
+        tabIndex={-1}
+        style={{
+          padding: 24,
+          background: 'var(--color-background)',
+          minHeight: '100vh'
+        }}
+      >
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          {children}
+        </div>
+      </main>
     </div>
   );
 }
