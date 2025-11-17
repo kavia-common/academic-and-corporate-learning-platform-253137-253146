@@ -2,7 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme and Ocean Professional utilities */
 @import './styles/theme.css';
+@import './styles/ocean.css';
 
 /* Existing base styles preserved below */
 body {
