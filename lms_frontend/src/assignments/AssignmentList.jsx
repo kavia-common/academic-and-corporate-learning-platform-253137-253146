@@ -18,6 +18,9 @@ export default function AssignmentList() {
   const isAuthed = status === 'authenticated';
   const r = String(role || '').toLowerCase();
 
+  // small helper to defensively coerce any incoming data to an array
+  const asArray = (val) => (Array.isArray(val) ? val : val ? [val] : []);
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -36,7 +39,7 @@ export default function AssignmentList() {
           data = [];
         }
         if (!mounted) return;
-        setAssignments(data);
+        setAssignments(asArray(data));
       } catch (e) {
         if (!mounted) return;
         setErr(e?.message || 'Failed to load assignments.');
@@ -48,6 +51,8 @@ export default function AssignmentList() {
       mounted = false;
     };
   }, [courseId, isAuthed, r, user]);
+
+  const list = Array.isArray(assignments) ? assignments : []; // double-guard in render
 
   return (
     <div style={{ padding: 24 }}>
@@ -62,24 +67,31 @@ export default function AssignmentList() {
 
       {loading && <div className="card" style={{ padding: 16 }}>Loading assignments…</div>}
       {err && !loading && (
-        <div className="card" role="alert" style={{ padding: 16, borderColor: 'rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: 'var(--color-error)' }}>
+        <div className="card" role="alert" aria-live="assertive" aria-atomic="true" style={{ padding: 16, borderColor: 'rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: 'var(--color-error)' }}>
           {err}
         </div>
       )}
 
       {!loading && !err && (
         <div style={{ display: 'grid', gap: 12 }}>
-          {assignments.length === 0 ? (
-            <div className="card" style={{ padding: 16 }}>No assignments yet.</div>
+          {list.length === 0 ? (
+            <div className="card" role="status" aria-live="polite" style={{ padding: 16 }}>
+              <div style={{ fontWeight: 600 }}>No assignments yet.</div>
+              <div style={{ color: 'var(--color-text-muted)', marginTop: 4 }}>
+                {courseId
+                  ? 'This course has no assignments. Instructors can add one using the New assignment button.'
+                  : 'You have no assignments available at the moment.'}
+              </div>
+            </div>
           ) : (
-            assignments.map((a) => (
+            list.map((a) => (
               <div key={a.id} className="card" style={{ padding: 16, display: 'grid', gap: 6 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Link to={`/assignments/${a.id}`} className="link" style={{ fontWeight: 600, fontSize: 18 }}>
                     {a.title}
                   </Link>
                   {(isAuthed && (r === 'instructor' || r === 'admin')) && (
-                    <Link to={`/assignments/${a.id}/submissions`} className="btn">View submissions</Link>
+                    <Link to={`/assignments/${a.id}/submissions`} className="btn" aria-label={`View submissions for ${a.title ?? 'assignment'}`}>View submissions</Link>
                   )}
                 </div>
                 {a.due_date && (

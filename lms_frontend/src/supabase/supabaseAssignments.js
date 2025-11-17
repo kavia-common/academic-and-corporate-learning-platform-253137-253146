@@ -1,16 +1,30 @@
 import { supabase } from './client';
 import { safeExec, shapeError, validatePayload, buildRange } from './utils';
 
+/**
+ * Coerce any non-array value to an array. Used to normalize list responses.
+ * @param {any} val
+ * @returns {Array}
+ */
+function toArray(val) {
+  return Array.isArray(val) ? val : (val == null ? [] : [val]).flat().filter(Boolean);
+}
+
 // PUBLIC_INTERFACE
-/** Fetch assignments optionally filtered by courseId, with pagination. */
+/** Fetch assignments optionally filtered by courseId, with pagination. Always resolves with array data on success. */
 export async function fetchAssignments(courseId, options = {}) {
   const { page = 1, pageSize = 100 } = options;
   const { from, to } = buildRange(page, pageSize);
   return safeExec(async () => {
     let query = supabase.from('assignments').select('*').order('due_date', { ascending: true }).range(from, to);
-    if (courseId) query = query.eq('course_id', courseId);
+    if (courseId && typeof courseId === 'object' && courseId !== null) {
+      // support legacy signature: fetchAssignments({ courseId })
+      if (courseId.courseId) query = query.eq('course_id', courseId.courseId);
+    } else if (courseId) {
+      query = query.eq('course_id', courseId);
+    }
     const { data, error } = await query;
-    return { data, error };
+    return { data: toArray(data), error };
   }, 'ASSIGNMENT_LIST_FAILED', 400);
 }
 
@@ -61,7 +75,7 @@ export async function deleteAssignment(id) {
 }
 
 // PUBLIC_INTERFACE
-/** List submissions for an assignment (instructor/admin). */
+/** List submissions for an assignment (instructor/admin). Always returns an array on success. */
 export async function listSubmissions(assignmentId, options = {}) {
   if (!assignmentId) return shapeError(new Error('assignmentId is required'), 'VALIDATION_ERROR', 400);
   const { page = 1, pageSize = 200 } = options;
@@ -73,7 +87,7 @@ export async function listSubmissions(assignmentId, options = {}) {
       .eq('assignment_id', assignmentId)
       .order('created_at', { ascending: false })
       .range(from, to);
-    return { data, error };
+    return { data: toArray(data), error };
   }, 'SUBMISSION_LIST_FAILED', 400);
 }
 
@@ -99,7 +113,7 @@ export async function submitAssignment({ assignment_id, student_id, content, fil
 export const listAssignmentsByCourse = async (courseId, options = {}) => {
   const res = await fetchAssignments(courseId, options);
   if (!res.ok) throw new Error(res.error?.message || 'Failed to load assignments');
-  return res.data;
+  return Array.isArray(res.data) ? res.data : [];
 };
 export const getAssignmentById = async (id) => {
   const res = await fetchAssignmentById(id);
