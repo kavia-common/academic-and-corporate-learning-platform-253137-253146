@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { learningPath } from '../data/learningData';
 import { Modal } from '../components/ui/Modal';
 import { Card, CardBody, CardHeader } from '../components/ui/Card';
-import { toEmbedUrl } from '../utils/videoUrl';
+
 
 /**
  * PUBLIC_INTERFACE
@@ -31,23 +31,6 @@ export default function LearningPath() {
   const player = useMemo(() => {
     if (!activeLesson) return null;
     const url = activeLesson.video_url;
-    const embed = toEmbedUrl(url);
-    if (embed) {
-      return (
-        <div className="w-full">
-          <div className="aspect-video w-full rounded-md overflow-hidden bg-black/5">
-            <iframe
-              src={embed}
-              title={activeLesson.title}
-              className="w-full h-full"
-              allow="autoplay; fullscreen"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      );
-    }
-    // Fallback to basic HTML5 video; will try controls with provided URL
     return (
       <video
         className="w-full rounded-md"
