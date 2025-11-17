@@ -35,6 +35,11 @@ import AdminDashboard from './dashboards/AdminDashboard';
 
 import StudentDashboard from './dashboards/StudentDashboard';
 
+// Learning Paths pages
+import Paths from './pages/Paths';
+import PathDetail from './pages/PathDetail';
+import CourseLessons from './pages/CourseLessons';
+
 // PUBLIC_INTERFACE
 export function HomePage() {
   /** Landing page showing any redirect notices. */
@@ -48,6 +53,11 @@ export function HomePage() {
         <p style={{ marginTop: 12, color: 'var(--color-muted)' }}>{notice}</p>
       ) : null}
       {/* Secondary navigation removed per UI cleanup requirements */}
+      <div style={{ marginTop: 16 }}>
+        <Link to="/paths" className="nav-link text-blue-600 hover:underline">
+          Browse Learning Paths
+        </Link>
+      </div>
     </div>
   );
 }
@@ -82,6 +92,11 @@ export default function ApplicationRoutes() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
 
+      {/* Learning paths & courses (public) */}
+      <Route path="/paths" element={<Paths />} />
+      <Route path="/paths/:pathId" element={<PathDetail />} />
+      <Route path="/courses/:courseId" element={<CourseLessons />} />
+
       {/* Public course/quiz views */}
       <Route path="/courses" element={<CourseList />} />
       <Route path="/courses/:id" element={<CourseDetail />} />
@@ -104,8 +119,6 @@ export default function ApplicationRoutes() {
           <Route path="/dashboard/admin" element={<AdminDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
         </Route>
-
-
 
         {/* Student */}
         <Route element={<RoleRoute allowedRoles={['student']} />}>

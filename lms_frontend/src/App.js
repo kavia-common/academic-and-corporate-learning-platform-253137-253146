@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Link } from 'react-router-dom';
 import ApplicationRoutes from './routes';
 import Container from './components/layout/Container';
 
@@ -26,6 +26,13 @@ function App() {
           {/* Routed content renders here with Sidebar-only layout */}
           <ApplicationRoutes />
         </Container>
+
+        {/* Quick access link to Learning Paths */}
+        <div className="px-4 py-2">
+          <Link to="/paths" className="nav-link text-blue-600 hover:underline">
+            Browse Learning Paths
+          </Link>
+        </div>
 
         {/* Hidden but accessible theme toggle for users needing contrast change */}
         <button
