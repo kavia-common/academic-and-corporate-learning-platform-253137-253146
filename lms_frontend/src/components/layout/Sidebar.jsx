@@ -8,15 +8,20 @@ import { Button } from '../ui/Button';
  * Sidebar renders the primary navigation with a compact auth/user section at the very top.
  *
  * Props:
- * - onNavigate: function - called after a nav link is clicked (useful for closing mobile drawer)
+ * - items?: Array<{label:string,to:string,roles?:string[]}>
+ * - onNavigate?: () => void - called after a nav link is clicked (useful for closing mobile drawer)
+ *
+ * Behavior:
+ * - If items prop is provided, those are rendered and filtered by current role if link.roles is present.
+ * - If not provided, defaults are rendered with role-based visibility.
+ * - Avoids duplication of Admin nav placement by not auto-appending defaults when items are passed.
  */
-export default function Sidebar({ onNavigate }) {
+export default function Sidebar({ items = [], onNavigate }) {
   const navigate = useNavigate();
   const { status, role, user, signOut } = useAuth();
   const isAuthed = status === 'authenticated';
   const r = String(role || '').toLowerCase();
 
-  // Helper to apply active styles consistently
   const linkClass = ({ isActive }) =>
     `flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
       isActive ? 'text-blue-600 font-semibold' : 'text-gray-700 hover:text-blue-600'
@@ -32,17 +37,13 @@ export default function Sidebar({ onNavigate }) {
       await signOut();
       onNavigate?.();
       navigate('/', { replace: true, state: { notice: 'Signed out successfully.' } });
-    } catch (_) {
-      // Non-intrusive; could enhance with toast later.
+    } catch {
+      // swallow; upgrade later with toast
     }
   };
 
-  // Derive user display
   const displayName =
-    user?.user_metadata?.full_name ||
-    user?.user_metadata?.name ||
-    user?.email ||
-    'User';
+    user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'User';
 
   const initials =
     (displayName || '')
@@ -52,14 +53,28 @@ export default function Sidebar({ onNavigate }) {
       .slice(0, 2)
       .toUpperCase() || 'U';
 
+  const defaultItems = [
+    { label: 'Home', to: '/' },
+    ...(isAuthed ? [{ label: 'Dashboard', to: '/dashboard' }] : []),
+    { label: 'Courses', to: '/courses' },
+    { label: 'Quizzes', to: '/quizzes' },
+    ...(isAuthed && r === 'student' ? [{ label: 'My Assignments', to: '/assignments' }] : []),
+    ...(isAuthed && r === 'instructor'
+      ? [
+          { label: 'Instructor', to: '/instructor' },
+          { label: 'Assignments', to: '/assignments' },
+        ]
+      : []),
+    ...(isAuthed ? [{ label: 'Profile', to: '/profile' }] : []),
+    ...(isAuthed && r === 'admin' ? [{ label: 'Admin', to: '/admin', roles: ['admin'] }] : []),
+  ];
+
+  const links = items.length ? items : defaultItems;
+
   return (
-    <nav aria-label="Primary Navigation" style={{ padding: 12, background: 'var(--color-surface)', color: 'var(--color-text)' }}>
-      {/* Compact auth/user section at the very top */}
-      <div
-        className="auth-compact"
-        style={{ padding: 12, marginBottom: 12, background: 'var(--color-surface)', border: '1px solid rgba(17,24,39,0.08)', borderRadius: 8 }}
-        aria-label={isAuthed ? 'User details' : 'Sign in prompt'}
-      >
+    <nav aria-label="Primary Navigation" className="w-64 bg-white border-r border-gray-200">
+      {/* Compact auth/user section */}
+      <div className="p-4 border-b border-gray-100">
         {isAuthed ? (
           <div className="flex items-center justify-between gap-3">
             <Link
@@ -92,125 +107,26 @@ export default function Sidebar({ onNavigate }) {
           </div>
         ) : (
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-700" aria-hidden="true">Welcome</div>
-            <Button
-              onClick={handleSignIn}
-              aria-label="Sign in"
-              title="Sign in"
-              size="sm"
-            >
+            <div className="text-sm text-gray-700" aria-hidden="true">
+              Welcome
+            </div>
+            <Button onClick={handleSignIn} aria-label="Sign in" title="Sign in" size="sm">
               Sign in
             </Button>
           </div>
         )}
       </div>
 
-      {/* Keep navigation list below in the configured order (Home and Admin below Profile as previously configured) */}
-      <ul className="nav" role="list" style={{ display: 'grid', gap: 6 }}>
-        <li>
-          <NavLink
-            to="/"
-            onClick={onNavigate}
-            className={linkClass}
-            end
-            aria-label="Home"
-            title="Home"
-          >
-            <span aria-hidden>🏠</span>
-            <span>Home</span>
-          </NavLink>
-        </li>
-
-        {isAuthed && (
-          <li>
-            <NavLink
-              to="/dashboard"
-              onClick={onNavigate}
-              className={linkClass}
-              end
-              aria-label="Dashboard"
-              title="Dashboard"
-            >
-              <span aria-hidden>📊</span>
-              <span>Dashboard</span>
-            </NavLink>
-          </li>
-        )}
-
-        <li>
-          <NavLink
-            to="/courses"
-            onClick={onNavigate}
-            className={linkClass}
-            aria-label="Courses"
-            title="Courses"
-          >
-            <span aria-hidden>🎓</span>
-            <span>Courses</span>
-          </NavLink>
-        </li>
-
-        <li>
-          <NavLink to="/quizzes" onClick={onNavigate} className={linkClass} aria-label="Quizzes" title="Quizzes">
-            <span aria-hidden>❓</span>
-            <span>Quizzes</span>
-          </NavLink>
-        </li>
-
-        {isAuthed && r === 'student' && (
-          <li>
-            <NavLink to="/assignments" onClick={onNavigate} className={linkClass} aria-label="My Assignments" title="My Assignments">
-              <span aria-hidden>📝</span>
-              <span>My Assignments</span>
-            </NavLink>
-          </li>
-        )}
-
-        {isAuthed && r === 'instructor' && (
-          <>
-            <li>
-              <NavLink to="/instructor" onClick={onNavigate} className={linkClass} aria-label="Instructor" title="Instructor">
-                <span aria-hidden>📚</span>
-                <span>Instructor</span>
+      <ul className="p-4 space-y-1" role="list">
+        {links
+          .filter((link) => !link.roles || link.roles.includes(r))
+          .map((link) => (
+            <li key={link.to}>
+              <NavLink to={link.to} onClick={onNavigate} className={linkClass} end={link.to === '/'}>
+                <span>{link.label}</span>
               </NavLink>
             </li>
-            <li>
-              <NavLink to="/assignments" onClick={onNavigate} className={linkClass} aria-label="Assignments" title="Assignments">
-                <span aria-hidden>📝</span>
-                <span>Assignments</span>
-              </NavLink>
-            </li>
-          </>
-        )}
-
-        {isAuthed ? (
-          <>
-            <li>
-              <NavLink to="/profile" onClick={onNavigate} className={linkClass} aria-label="Profile" title="Profile">
-                <span aria-hidden>👤</span>
-                <span>Profile</span>
-              </NavLink>
-            </li>
-            {/*
-              PUBLIC_INTERFACE
-              Admin navigation item - visible only to admin role.
-
-              LOCKED PLACEMENT: Do not move, duplicate, or conditionally re-insert this item elsewhere.
-              It must remain immediately AFTER the Profile item. If Profile is conditionally hidden,
-              this Admin item should also remain in this block so it naturally follows Profile when present.
-
-              Active state is handled by NavLink via linkClass.
-            */}
-            {r === 'admin' && (
-              <li>
-                <NavLink to="/admin" onClick={onNavigate} className={linkClass} end aria-label="Admin" title="Admin">
-                  <span aria-hidden>🛠️</span>
-                  <span>Admin</span>
-                </NavLink>
-              </li>
-            )}
-          </>
-        ) : null}
+          ))}
       </ul>
     </nav>
   );
