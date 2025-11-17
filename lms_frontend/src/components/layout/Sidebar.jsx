@@ -37,13 +37,7 @@ export default function Sidebar({ onNavigate }) {
       </div>
 
       <ul className="nav" role="list">
-        <li>
-          <NavLink to="/" end onClick={onNavigate}>
-            <span>🏠</span>
-            <span>Home</span>
-          </NavLink>
-        </li>
-
+        {/* Top priority: Dashboard (always shown to authed), then Admin (role-gated) */}
         {isAuthed && (
           <>
             <li>
@@ -52,23 +46,26 @@ export default function Sidebar({ onNavigate }) {
                 <span>Dashboard</span>
               </NavLink>
             </li>
-            {r === 'student' && (
+            {r === 'admin' && (
               <li>
-                <NavLink to="/assignments" onClick={onNavigate}>
-                  <span>📝</span>
-                  <span>My Assignments</span>
+                <NavLink to="/admin" onClick={onNavigate}>
+                  <span>🛠️</span>
+                  <span>Admin</span>
                 </NavLink>
               </li>
             )}
-            <li>
-              <NavLink to="/profile" onClick={onNavigate}>
-                <span>👤</span>
-                <span>Profile</span>
-              </NavLink>
-            </li>
           </>
         )}
 
+        {/* Home moved below Dashboard/Admin */}
+        <li>
+          <NavLink to="/" end onClick={onNavigate}>
+            <span>🏠</span>
+            <span>Home</span>
+          </NavLink>
+        </li>
+
+        {/* Remaining common and role-based items preserved */}
         <li>
           <NavLink to="/courses" onClick={onNavigate}>
             <span>🎓</span>
@@ -83,16 +80,16 @@ export default function Sidebar({ onNavigate }) {
           </NavLink>
         </li>
 
-        {isAuthed && (r === 'admin') && (
+        {isAuthed && r === 'student' && (
           <li>
-            <NavLink to="/admin" onClick={onNavigate}>
-              <span>🛠️</span>
-              <span>Admin</span>
+            <NavLink to="/assignments" onClick={onNavigate}>
+              <span>📝</span>
+              <span>My Assignments</span>
             </NavLink>
           </li>
         )}
 
-        {isAuthed && (r === 'instructor') && (
+        {isAuthed && r === 'instructor' && (
           <>
             <li>
               <NavLink to="/instructor" onClick={onNavigate}>
@@ -107,6 +104,15 @@ export default function Sidebar({ onNavigate }) {
               </NavLink>
             </li>
           </>
+        )}
+
+        {isAuthed && (
+          <li>
+            <NavLink to="/profile" onClick={onNavigate}>
+              <span>👤</span>
+              <span>Profile</span>
+            </NavLink>
+          </li>
         )}
 
         {!isAuthed && (
