@@ -57,14 +57,6 @@ export default function Sidebar({ onNavigate }) {
           </>
         )}
 
-        {/* Home moved below Dashboard/Admin */}
-        <li>
-          <NavLink to="/" end onClick={onNavigate}>
-            <span>🏠</span>
-            <span>Home</span>
-          </NavLink>
-        </li>
-
         {/* Remaining common and role-based items preserved */}
         <li>
           <NavLink to="/courses" onClick={onNavigate}>
