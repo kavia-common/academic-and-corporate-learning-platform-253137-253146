@@ -57,6 +57,7 @@ export default function Sidebar({ items = [], onNavigate }) {
     ...(isAuthed ? [{ label: 'Dashboard', to: '/dashboard' }] : []),
     { label: 'Courses', to: '/courses' },
     { label: 'Quizzes', to: '/quizzes' },
+    { label: 'Learning Paths', to: '/paths' },
     ...(isAuthed && r === 'student' ? [{ label: 'My Assignments', to: '/assignments' }] : []),
     ...(isAuthed ? [{ label: 'Profile', to: '/profile' }] : []),
     ...(isAuthed && r === 'admin' ? [{ label: 'Admin', to: '/admin', roles: ['admin'] }] : []),
@@ -115,7 +116,13 @@ export default function Sidebar({ items = [], onNavigate }) {
           .filter((link) => !link.roles || link.roles.includes(r))
           .map((link) => (
             <li key={link.to}>
-              <NavLink to={link.to} onClick={onNavigate} className={linkClass} end={link.to === '/'}>
+              <NavLink
+                to={link.to}
+                onClick={onNavigate}
+                className={linkClass}
+                aria-label={link.label}
+                end={link.to === '/'}
+              >
                 <span>{link.label}</span>
               </NavLink>
             </li>
