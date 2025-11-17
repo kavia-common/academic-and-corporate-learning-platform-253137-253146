@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { createAssignment } from '../supabase/supabaseAssignments';
+import { createAssignment } from '../supabase';
 import { useAuth } from '../auth/AuthProvider';
 
 /**

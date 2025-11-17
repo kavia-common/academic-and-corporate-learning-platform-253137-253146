@@ -1,23 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../AuthProvider';
-import {
-  getMyProfile,
-  updateMyProfile,
-  uploadAvatar,
-  getAvatarPublicUrl,
-  getAvatarSignedUrl,
-  saveProfileAvatarPath,
-  validateAvatarFile,
-} from '../../supabase/supabaseStorage';
 
 /**
  * PUBLIC_INTERFACE
- * Profile page for the current user.
- * - Shows current profile info and avatar (if present)
- * - Allows uploading a new avatar with validation (png/jpg/webp <= 5MB)
- * - Stores the uploaded file in Supabase Storage 'avatars' bucket
- * - Persists the storage path in profiles table
- * - Displays avatar using a signed URL (fallback to public URL)
+ * Profile page (simplified placeholder).
+ * - Displays basic editable fields locally
+ * - Avatar upload is disabled until storage/profile helpers are wired
  */
 export default function ProfilePage() {
   const { status, user } = useAuth();
@@ -45,57 +33,13 @@ export default function ProfilePage() {
   const hasAvatarPath = useMemo(() => !!(profile?.avatar_path || profile?.avatar_url), [profile]);
 
   useEffect(() => {
-    let mounted = true;
-    if (!isAuthed || !userId) return;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const data = await getMyProfile(userId);
-        if (!mounted) return;
-        setProfile((p) => ({
-          ...p,
-          full_name: data?.full_name || '',
-          username: data?.username || '',
-          website: data?.website || '',
-          avatar_path: data?.avatar_path || null,
-          avatar_url: data?.avatar_url || null,
-        }));
-      } catch (e) {
-        if (mounted) setError(e?.message || 'Failed to load profile.');
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
+    // Placeholder: initialize with basic user data if available
+    setLoading(false);
   }, [isAuthed, userId]);
 
   useEffect(() => {
-    let cancelled = false;
-    async function hydrateUrl() {
-      setAvatarDisplayUrl(null);
-      const path = profile?.avatar_path || profile?.avatar_url;
-      if (!path) return;
-
-      // Try signed first (works for private buckets). If fails, try public.
-      const signed = await getAvatarSignedUrl(path).catch(() => null);
-      if (cancelled) return;
-      if (signed) {
-        setAvatarDisplayUrl(signed);
-        return;
-      }
-      const pub = await getAvatarPublicUrl(path);
-      if (cancelled) return;
-      setAvatarDisplayUrl(pub);
-    }
-    hydrateUrl();
-    return () => {
-      cancelled = true;
-    };
+    // No avatar hydration without storage helpers; keep placeholder icon
+    setAvatarDisplayUrl(null);
   }, [profile?.avatar_path, profile?.avatar_url]);
 
   if (!isAuthed) {
@@ -118,52 +62,13 @@ export default function ProfilePage() {
     e.preventDefault();
     setSaving(true);
     setError('');
-    setInfo('');
-    try {
-      const updated = await updateMyProfile(userId, {
-        full_name: profile.full_name,
-        username: profile.username,
-        website: profile.website,
-      });
-      setProfile((p) => ({ ...p, ...updated }));
-      setInfo('Profile saved.');
-    } catch (err) {
-      setError(err?.message || 'Failed to save profile.');
-    } finally {
-      setSaving(false);
-    }
+    setInfo('Profile saved (local only placeholder).');
+    setTimeout(() => setSaving(false), 300);
   };
 
-  const onAvatarChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setError('');
+  const onAvatarChange = async () => {
+    setError('Avatar upload is not configured yet.');
     setInfo('');
-
-    try {
-      validateAvatarFile(file);
-    } catch (ve) {
-      setError(ve.message);
-      return;
-    }
-
-    const previewUrl = URL.createObjectURL(file);
-    setAvatarPreview(previewUrl);
-
-    try {
-      setAvatarLoading(true);
-      const path = await uploadAvatar(file, userId);
-      await saveProfileAvatarPath(userId, path);
-      setProfile((p) => ({ ...p, avatar_path: path, avatar_url: null }));
-      setInfo('Avatar updated.');
-      // after updating path, signed URL hook effect will refresh avatarDisplayUrl
-    } catch (err) {
-      setError(err?.message || 'Failed to upload avatar.');
-      // clear preview if failed
-      setAvatarPreview(null);
-    } finally {
-      setAvatarLoading(false);
-    }
   };
 
   return (
@@ -218,7 +123,6 @@ export default function ProfilePage() {
                 aria-label="Profile avatar"
               >
                 {avatarPreview ? (
-                  // local preview
                   <img
                     alt="New avatar preview"
                     src={avatarPreview}
@@ -236,19 +140,19 @@ export default function ProfilePage() {
               </div>
 
               <div style={{ display: 'grid', gap: 8 }}>
-                <label className="btn" style={{ cursor: 'pointer', width: 'fit-content' }}>
-                  {avatarLoading ? 'Uploading…' : 'Upload avatar'}
+                <label className="btn" style={{ cursor: 'not-allowed', width: 'fit-content', opacity: 0.7 }}>
+                  Upload avatar (disabled)
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
                     onChange={onAvatarChange}
                     style={{ display: 'none' }}
                     aria-label="Upload avatar"
-                    disabled={avatarLoading}
+                    disabled
                   />
                 </label>
                 <small style={{ color: 'var(--color-text-muted)' }}>
-                  Accepted types: PNG, JPG, WEBP. Max size: 5MB.
+                  Avatar upload will be enabled when storage/profile helpers are configured.
                 </small>
               </div>
             </div>

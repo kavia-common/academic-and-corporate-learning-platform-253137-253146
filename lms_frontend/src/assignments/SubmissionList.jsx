@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getAssignmentById, listSubmissions } from '../supabase/supabaseAssignments';
+import { fetchAssignmentById as getAssignmentById, listSubmissions } from '../supabase';
 import { useAuth } from '../auth/AuthProvider';
 
 /**

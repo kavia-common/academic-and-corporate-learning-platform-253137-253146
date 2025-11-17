@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { enrollInCourse, getCourseById } from '../supabase/supabaseCourses';
+import { enrollInCourse, fetchCourseById as getCourseById } from '../supabase';
 import { useAuth } from '../auth/AuthProvider';
 
 /**

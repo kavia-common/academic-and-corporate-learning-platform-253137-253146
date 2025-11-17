@@ -1,101 +1,108 @@
-import supabase from './client';
-
-/**
- * Supabase Assignments and Submissions data access layer.
- * Assumed schema:
- * - assignments: id (uuid), course_id (uuid), title (text), description (text), due_date (timestamp), created_by (uuid), created_at (timestamp)
- * - submissions: id (uuid), assignment_id (uuid), student_id (uuid), content (text), file_url (text), created_at (timestamp)
- * Adjust/select columns to match your backend.
- */
+import { supabase } from './client';
+import { safeExec, shapeError, validatePayload, buildRange } from './utils';
 
 // PUBLIC_INTERFACE
-export async function listAssignmentsByCourse(courseId) {
-  /** List assignments for a given course */
-  if (!courseId) throw new Error('Course ID is required');
-  const { data, error } = await supabase
-    .from('assignments')
-    .select('*')
-    .eq('course_id', courseId)
-    .order('due_date', { ascending: true });
-  if (error) throw new Error('Failed to load assignments.');
-  return data || [];
+/** Fetch assignments optionally filtered by courseId, with pagination. */
+export async function fetchAssignments(courseId, options = {}) {
+  const { page = 1, pageSize = 100 } = options;
+  const { from, to } = buildRange(page, pageSize);
+  return safeExec(async () => {
+    let query = supabase.from('assignments').select('*').order('due_date', { ascending: true }).range(from, to);
+    if (courseId) query = query.eq('course_id', courseId);
+    const { data, error } = await query;
+    return { data, error };
+  }, 'ASSIGNMENT_LIST_FAILED', 400);
 }
 
 // PUBLIC_INTERFACE
-export async function listMyAssignments(studentId) {
-  /**
-   * List assignments for a student.
-   * Note: This could be all assignments from courses the user is enrolled in.
-   * For simplicity, we return all assignments if you don't have a join view.
-   * Consider creating a view to join enrollments -> assignments for production.
-   */
-  // Fallback to all assignments if there's no join
-  const { data, error } = await supabase
-    .from('assignments')
-    .select('*')
-    .order('due_date', { ascending: true });
-  if (error) throw new Error('Failed to load your assignments.');
-  return data || [];
+/** Fetch a single assignment by id. */
+export async function fetchAssignmentById(id) {
+  if (!id) return shapeError(new Error('id is required'), 'VALIDATION_ERROR', 400);
+  return safeExec(async () => {
+    const { data, error } = await supabase.from('assignments').select('*').eq('id', id).single();
+    return { data, error };
+  }, 'ASSIGNMENT_FETCH_FAILED', 404);
 }
 
 // PUBLIC_INTERFACE
-export async function getAssignmentById(id) {
-  /** Fetch a single assignment by id */
-  const { data, error } = await supabase.from('assignments').select('*').eq('id', id).single();
-  if (error) throw new Error('Assignment not found.');
-  return data;
+/** Create a new assignment. */
+export async function createAssignment(assignment) {
+  const required = { title: 'string', description: 'string', course_id: 'string', due_date: 'string' };
+  const valid = validatePayload(required, assignment || {});
+  if (!valid.ok) return valid;
+
+  return safeExec(async () => {
+    const { data, error } = await supabase.from('assignments').insert(assignment).select().single();
+    return { data, error };
+  }, 'ASSIGNMENT_CREATE_FAILED', 400);
 }
 
 // PUBLIC_INTERFACE
-export async function createAssignment({ course_id, title, description, due_date, created_by }) {
-  /** Create a new assignment (instructor/admin only) */
-  const payload = {
-    course_id,
-    title: String(title || '').trim(),
-    description: String(description || '').trim(),
-    due_date: due_date || null,
-    created_by,
-  };
-  if (!payload.course_id) throw new Error('Course is required.');
-  if (!payload.title) throw new Error('Title is required.');
-  const { data, error } = await supabase.from('assignments').insert(payload).select('*').single();
-  if (error) throw new Error('Failed to create assignment.');
-  return data;
+/** Update an assignment. */
+export async function updateAssignment(id, updates) {
+  if (!id) return shapeError(new Error('id is required'), 'VALIDATION_ERROR', 400);
+  if (!updates || typeof updates !== 'object' || !Object.keys(updates).length) {
+    return shapeError(new Error('updates must be non-empty object'), 'VALIDATION_ERROR', 400);
+  }
+  return safeExec(async () => {
+    const { data, error } = await supabase.from('assignments').update(updates).eq('id', id).select().single();
+    return { data, error };
+  }, 'ASSIGNMENT_UPDATE_FAILED', 400);
 }
 
 // PUBLIC_INTERFACE
+/** Delete an assignment. */
+export async function deleteAssignment(id) {
+  if (!id) return shapeError(new Error('id is required'), 'VALIDATION_ERROR', 400);
+  return safeExec(async () => {
+    const { error } = await supabase.from('assignments').delete().eq('id', id);
+    return { data: true, error };
+  }, 'ASSIGNMENT_DELETE_FAILED', 400);
+}
+
+// PUBLIC_INTERFACE
+/** List submissions for an assignment (instructor/admin). */
+export async function listSubmissions(assignmentId, options = {}) {
+  if (!assignmentId) return shapeError(new Error('assignmentId is required'), 'VALIDATION_ERROR', 400);
+  const { page = 1, pageSize = 200 } = options;
+  const { from, to } = buildRange(page, pageSize);
+  return safeExec(async () => {
+    const { data, error } = await supabase
+      .from('submissions')
+      .select('*')
+      .eq('assignment_id', assignmentId)
+      .order('created_at', { ascending: false })
+      .range(from, to);
+    return { data, error };
+  }, 'SUBMISSION_LIST_FAILED', 400);
+}
+
+// PUBLIC_INTERFACE
+/** Submit an assignment (student). */
 export async function submitAssignment({ assignment_id, student_id, content, file_url }) {
-  /** Create a submission for an assignment (student) */
-  if (!assignment_id || !student_id) throw new Error('Invalid submission request.');
+  if (!assignment_id || !student_id) {
+    return shapeError(new Error('assignment_id and student_id are required'), 'VALIDATION_ERROR', 400);
+  }
   const payload = {
     assignment_id,
     student_id,
     content: String(content || '').trim(),
     file_url: file_url || null,
   };
-  const { data, error } = await supabase.from('submissions').insert(payload).select('*').single();
-  if (error) throw new Error('Failed to submit assignment.');
-  return data;
+  return safeExec(async () => {
+    const { data, error } = await supabase.from('submissions').insert(payload).select().single();
+    return { data, error };
+  }, 'SUBMISSION_CREATE_FAILED', 400);
 }
 
-// PUBLIC_INTERFACE
-export async function listSubmissions(assignmentId) {
-  /** List submissions for an assignment (instructor/admin) */
-  if (!assignmentId) throw new Error('Assignment ID is required');
-  const { data, error } = await supabase
-    .from('submissions')
-    .select('*')
-    .eq('assignment_id', assignmentId)
-    .order('created_at', { ascending: false });
-  if (error) throw new Error('Failed to load submissions.');
-  return data || [];
-}
-
-export default {
-  listAssignmentsByCourse,
-  listMyAssignments,
-  getAssignmentById,
-  createAssignment,
-  submitAssignment,
-  listSubmissions,
+// Backward compatibility named exports used by pages in this repo
+export const listAssignmentsByCourse = async (courseId, options = {}) => {
+  const res = await fetchAssignments(courseId, options);
+  if (!res.ok) throw new Error(res.error?.message || 'Failed to load assignments');
+  return res.data;
+};
+export const getAssignmentById = async (id) => {
+  const res = await fetchAssignmentById(id);
+  if (!res.ok) throw new Error(res.error?.message || 'Assignment not found');
+  return res.data;
 };

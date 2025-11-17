@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getQuizById, getQuestions, listAttempts } from '../supabase/supabaseQuizzes';
+import { getQuizById, getQuestions, listAttempts } from '../supabase';
 import { useAuth } from '../auth/AuthProvider';
 
 /**

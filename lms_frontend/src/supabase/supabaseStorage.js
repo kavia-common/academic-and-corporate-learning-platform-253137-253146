@@ -1,155 +1,157 @@
-import supabase from './client';
-
 /**
- * Utilities for handling avatar uploads and URL retrieval via Supabase Storage.
- * Bucket assumed: 'avatars'
- * Table assumed: 'profiles' with columns: id (uuid PK, equals auth user id), avatar_url (text) or avatar_path (text)
- * We will store the storage path in 'avatar_path' if available, else fallback to 'avatar_url'
+ * Storage service for Supabase with robust validation and error handling.
+ * Supports uploads for user avatars, course thumbnails, and assignment submissions.
  */
 
-const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp']);
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
-const BUCKET = 'avatars';
+import { supabase } from './client';
+import { safeExec, shapeError } from './utils';
 
-// PUBLIC_INTERFACE
-export function validateAvatarFile(file) {
-  /** Validate file type and size for avatar uploads. Throws an Error on invalid input. */
-  if (!file) throw new Error('Please choose a file.');
-  if (!ALLOWED_MIME.has(file.type)) {
-    throw new Error('Invalid file type. Please upload a PNG, JPG, or WEBP image.');
+function ensureClient() {
+  if (!supabase) {
+    return shapeError(new Error('Supabase client not initialized'), 'CONFIG_ERROR', 500);
   }
-  if (file.size > MAX_SIZE_BYTES) {
-    throw new Error('File is too large. Maximum size is 5MB.');
+  return { ok: true };
+}
+
+/**
+ * Validate a bucket and path for simple safety (no traversal).
+ */
+function validatePath(bucket, path) {
+  if (!bucket || typeof bucket !== 'string') {
+    return shapeError(new Error('bucket is required'), 'VALIDATION_ERROR', 400);
   }
-  return true;
+  if (!path || typeof path !== 'string') {
+    return shapeError(new Error('path is required'), 'VALIDATION_ERROR', 400);
+  }
+  if (path.startsWith('/') || path.includes('..')) {
+    return shapeError(new Error('Invalid path'), 'VALIDATION_ERROR', 400);
+  }
+  return { ok: true };
 }
 
 // PUBLIC_INTERFACE
-export async function uploadAvatar(file, userId) {
-  /**
-   * Upload a validated avatar file to Supabase Storage under avatars/<userId>/<timestamp>.<ext>
-   * Returns the uploaded storage path string.
-   */
-  if (!userId) throw new Error('Not signed in.');
-  validateAvatarFile(file);
+/**
+ * Upload a file to a bucket at a specified path.
+ * @param {string} bucket
+ * @param {string} path - e.g., "avatars/user-123.png"
+ * @param {File|Blob|Uint8Array} file
+ * @param {{contentType?: string, upsert?: boolean, cacheControl?: string}} options
+ */
+export async function uploadFile(bucket, path, file, options = {}) {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
 
-  const ext = (() => {
-    const m = file.name?.split('.') || [];
-    const e = m.length > 1 ? m[m.length - 1].toLowerCase() : '';
-    if (e) return e;
-    // best-effort from MIME
-    if (file.type === 'image/png') return 'png';
-    if (file.type === 'image/jpeg') return 'jpg';
-    if (file.type === 'image/webp') return 'webp';
-    return 'dat';
-  })();
+  const val = validatePath(bucket, path);
+  if (!val.ok) return val;
 
-  const path = `${userId}/${Date.now()}.${ext}`;
+  if (!file) {
+    return shapeError(new Error('file is required'), 'VALIDATION_ERROR', 400);
+  }
 
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, file, {
-      contentType: file.type || 'application/octet-stream',
-      upsert: true,
+  const { contentType = 'application/octet-stream', upsert = true, cacheControl = '3600' } = options;
+
+  return safeExec(async () => {
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(path, file, { contentType, upsert, cacheControl });
+    return { data, error };
+  }, 'STORAGE_UPLOAD_FAILED', 400);
+}
+
+// PUBLIC_INTERFACE
+/**
+ * Get a public URL for a file. Requires bucket to be public or signed URLs usage.
+ * @param {string} bucket
+ * @param {string} path
+ */
+export async function getPublicUrl(bucket, path) {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+
+  const val = validatePath(bucket, path);
+  if (!val.ok) return val;
+
+  return safeExec(async () => {
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+    // getPublicUrl never returns 'error' but we normalize shape
+    return { data, error: null };
+  }, 'STORAGE_PUBLIC_URL_FAILED', 400);
+}
+
+// PUBLIC_INTERFACE
+/**
+ * Create a signed URL valid for the specified number of seconds.
+ * Useful if bucket is private.
+ * @param {string} bucket
+ * @param {string} path
+ * @param {number} expiresIn - seconds
+ */
+export async function createSignedUrl(bucket, path, expiresIn = 3600) {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+
+  const val = validatePath(bucket, path);
+  if (!val.ok) return val;
+
+  if (!Number.isFinite(expiresIn) || expiresIn <= 0) {
+    return shapeError(new Error('expiresIn must be a positive number'), 'VALIDATION_ERROR', 400);
+  }
+
+  return safeExec(async () => {
+    const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
+    return { data, error };
+  }, 'STORAGE_SIGNED_URL_FAILED', 400);
+}
+
+// PUBLIC_INTERFACE
+/**
+ * Remove files from a bucket.
+ * @param {string} bucket
+ * @param {string[]} paths
+ */
+export async function removeFiles(bucket, paths) {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+
+  if (!bucket || typeof bucket !== 'string') {
+    return shapeError(new Error('bucket is required'), 'VALIDATION_ERROR', 400);
+  }
+  if (!Array.isArray(paths) || !paths.length) {
+    return shapeError(new Error('paths must be a non-empty array'), 'VALIDATION_ERROR', 400);
+  }
+
+  return safeExec(async () => {
+    const { data, error } = await supabase.storage.from(bucket).remove(paths);
+    return { data, error };
+  }, 'STORAGE_REMOVE_FAILED', 400);
+}
+
+// PUBLIC_INTERFACE
+/**
+ * List files within a bucket and optional folder path.
+ * @param {string} bucket
+ * @param {string} folderPath - without starting slash, e.g., 'avatars/'
+ * @param {{limit?:number, offset?:number, sortBy?:{column:string, order:'asc'|'desc'}}} options
+ */
+export async function listFiles(bucket, folderPath = '', options = {}) {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+
+  if (!bucket || typeof bucket !== 'string') {
+    return shapeError(new Error('bucket is required'), 'VALIDATION_ERROR', 400);
+  }
+  if (folderPath.startsWith('/') || folderPath.includes('..')) {
+    return shapeError(new Error('Invalid folderPath'), 'VALIDATION_ERROR', 400);
+  }
+
+  const { limit = 100, offset = 0, sortBy = { column: 'name', order: 'asc' } } = options;
+
+  return safeExec(async () => {
+    const { data, error } = await supabase.storage.from(bucket).list(folderPath, {
+      limit,
+      offset,
+      sortBy,
     });
-
-  if (error) {
-    throw new Error('Failed to upload avatar. Please try again.');
-  }
-
-  return path;
+    return { data, error };
+  }, 'STORAGE_LIST_FAILED', 400);
 }
-
-// PUBLIC_INTERFACE
-export async function getAvatarPublicUrl(path) {
-  /** Returns a public URL for an object path if bucket/object is public; otherwise returns null. */
-  if (!path) return null;
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data?.publicUrl || null;
-}
-
-// PUBLIC_INTERFACE
-export async function getAvatarSignedUrl(path, { expiresIn = 60 * 60 } = {}) {
-  /**
-   * Returns a signed URL for a private object path.
-   * Default expiry: 1 hour.
-   */
-  if (!path) return null;
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, expiresIn);
-  if (error) {
-    return null;
-  }
-  return data?.signedUrl || null;
-}
-
-// PUBLIC_INTERFACE
-export async function saveProfileAvatarPath(userId, path) {
-  /**
-   * Upsert the avatar storage path into profiles table.
-   * Prefers 'avatar_path' column if exists; falls back to 'avatar_url'.
-   */
-  if (!userId) throw new Error('Not signed in.');
-
-  // Try avatar_path first
-  let payload = { id: userId, avatar_path: path || null };
-  let { error } = await supabase.from('profiles').upsert(payload, { onConflict: 'id' });
-
-  if (error) {
-    // If avatar_path column doesn't exist, fallback to avatar_url
-    payload = { id: userId, avatar_url: path || null };
-    const res2 = await supabase.from('profiles').upsert(payload, { onConflict: 'id' });
-    if (res2.error) {
-      throw new Error('Failed to update profile avatar.');
-    }
-  }
-  return true;
-}
-
-// PUBLIC_INTERFACE
-export async function getMyProfile(userId) {
-  /** Fetch profiles row for current user; returns {} if missing. */
-  if (!userId) throw new Error('Not signed in.');
-  // Try to select possible columns
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, full_name, username, website, avatar_path, avatar_url, updated_at')
-    .eq('id', userId)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error('Failed to load profile.');
-  }
-  return data || {};
-}
-
-// PUBLIC_INTERFACE
-export async function updateMyProfile(userId, updates) {
-  /** Update editable profile fields. Does not allow updating id. */
-  if (!userId) throw new Error('Not signed in.');
-  const allowed = {};
-  if (typeof updates?.full_name === 'string') allowed.full_name = updates.full_name.trim();
-  if (typeof updates?.username === 'string') allowed.username = updates.username.trim();
-  if (typeof updates?.website === 'string') allowed.website = updates.website.trim();
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .update(allowed)
-    .eq('id', userId)
-    .select('id, full_name, username, website, avatar_path, avatar_url, updated_at')
-    .maybeSingle();
-
-  if (error) {
-    throw new Error('Failed to update profile.');
-  }
-  return data;
-}
-
-export default {
-  uploadAvatar,
-  getAvatarPublicUrl,
-  getAvatarSignedUrl,
-  saveProfileAvatarPath,
-  getMyProfile,
-  updateMyProfile,
-  validateAvatarFile,
-};

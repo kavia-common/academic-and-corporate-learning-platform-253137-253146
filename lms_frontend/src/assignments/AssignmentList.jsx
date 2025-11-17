@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { listAssignmentsByCourse, listMyAssignments } from '../supabase/supabaseAssignments';
+import { fetchAssignments as listAssignmentsByCourse } from '../supabase';
 import { useAuth } from '../auth/AuthProvider';
 
 /**
@@ -28,7 +28,9 @@ export default function AssignmentList() {
         if (courseId) {
           data = await listAssignmentsByCourse(courseId);
         } else if (isAuthed && r === 'student') {
-          data = await listMyAssignments(user?.id);
+          // Fallback: load all assignments if no course filter (could be optimized with a join/view)
+          const res = await listAssignmentsByCourse(undefined);
+          data = res;
         } else {
           // Default to empty when no context
           data = [];

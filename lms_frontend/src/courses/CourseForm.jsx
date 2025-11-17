@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { createCourse, getCourseById, updateCourse } from '../supabase/supabaseCourses';
+import { createCourse, fetchCourseById as getCourseById, updateCourse } from '../supabase';
 import { useAuth } from '../auth/AuthProvider';
 
 /**

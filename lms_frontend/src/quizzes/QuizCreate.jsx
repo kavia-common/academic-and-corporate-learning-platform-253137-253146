@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { createQuiz, createQuestions } from '../supabase/supabaseQuizzes';
+import { createQuiz, createQuestions } from '../supabase';
 import { useAuth } from '../auth/AuthProvider';
 
 /**

@@ -1,221 +1,251 @@
-import supabase from './client';
-
 /**
- * Supabase helper functions to fetch counts and recent items for dashboards.
- * Assumed schema:
- * - courses(id, title, description, instructor_id, created_at)
- * - enrollments(id, course_id, user_id, created_at)
- * - assignments(id, course_id, title, due_date, created_at)
- * - quizzes(id, course_id, title, created_at)
- * - quiz_attempts(id, quiz_id, user_id, score, total_points, created_at)
- *
- * All functions scope data based on role where applicable.
+ * Users service for Supabase with robust validation and error handling.
+ * This module provides CRUD operations on the "users" profile table (not auth.users)
+ * and selected helpers that interact with Supabase Auth for sign-in/up flows.
  */
 
-// INTERNAL: safe count utility
-async function countFrom(table, filters = (q) => q) {
-  let query = supabase.from(table).select('*', { count: 'exact', head: true });
-  query = filters(query);
-  const { count, error } = await query;
-  if (error) throw new Error(`Failed to count ${table}.`);
-  return count || 0;
-}
+import { supabase } from './client';
+import { safeExec, shapeError, validatePayload, buildRange } from './utils';
 
-// PUBLIC_INTERFACE
-export async function getAdminCounts() {
-  /**
-   * Returns total counts for the whole system for admin dashboards.
-   * {
-   *   courses, enrollments, assignments, quizzes, attempts
-   * }
-   */
-  const [courses, enrollments, assignments, quizzes, attempts] = await Promise.all([
-    countFrom('courses'),
-    countFrom('enrollments'),
-    countFrom('assignments'),
-    countFrom('quizzes'),
-    countFrom('quiz_attempts'),
-  ]);
-  return { courses, enrollments, assignments, quizzes, attempts };
-}
-
-// PUBLIC_INTERFACE
-export async function getInstructorCounts(instructorId) {
-  /**
-   * Returns counts scoped to instructor ownership.
-   * - courses where instructor_id = me
-   * - enrollments for my courses
-   * - assignments under my courses
-   * - quizzes under my courses
-   * - attempts on quizzes under my courses
-   */
-  if (!instructorId) throw new Error('Missing instructor id');
-
-  // Helper: list course ids owned by instructor
-  const { data: myCourses, error: cErr } = await supabase
-    .from('courses')
-    .select('id')
-    .eq('instructor_id', instructorId);
-  if (cErr) throw new Error('Failed to load instructor courses.');
-  const courseIds = (myCourses || []).map((c) => c.id);
-  if (courseIds.length === 0) {
-    return { courses: 0, enrollments: 0, assignments: 0, quizzes: 0, attempts: 0 };
-  }
-
-  // Quizzes ids under my courses
-  const { data: myQuizzes, error: qErr } = await supabase
-    .from('quizzes')
-    .select('id')
-    .in('course_id', courseIds);
-  if (qErr) throw new Error('Failed to load instructor quizzes.');
-  const quizIds = (myQuizzes || []).map((q) => q.id);
-
-  const [courses, enrollments, assignments, quizzes, attempts] = await Promise.all([
-    countFrom('courses', (q) => q.eq('instructor_id', instructorId)),
-    countFrom('enrollments', (q) => q.in('course_id', courseIds)),
-    countFrom('assignments', (q) => q.in('course_id', courseIds)),
-    countFrom('quizzes', (q) => q.in('course_id', courseIds)),
-    quizIds.length > 0 ? countFrom('quiz_attempts', (q) => q.in('quiz_id', quizIds)) : Promise.resolve(0),
-  ]);
-
-  return { courses, enrollments, assignments, quizzes, attempts };
-}
-
-// PUBLIC_INTERFACE
-export async function getStudentCounts(studentId) {
-  /**
-   * Returns counts for a student:
-   * - courses enrolled (via enrollments.user_id = me)
-   * - enrollments (same as courses)
-   * - assignments across enrolled courses (best-effort if schema supports joining; fallback: all assignments)
-   * - quizzes across enrolled courses (fallback: all quizzes)
-   * - attempts by me
-   */
-  if (!studentId) throw new Error('Missing student id');
-
-  const enrollments = await countFrom('enrollments', (q) => q.eq('user_id', studentId));
-
-  // get course ids enrolled by student
-  const { data: myEnrolls, error: eErr } = await supabase
-    .from('enrollments')
-    .select('course_id')
-    .eq('user_id', studentId);
-  if (eErr) throw new Error('Failed to load enrollments.');
-  const courseIds = (myEnrolls || []).map((e) => e.course_id);
-
-  const assignments =
-    courseIds.length > 0
-      ? await countFrom('assignments', (q) => q.in('course_id', courseIds))
-      : await countFrom('assignments'); // fallback
-
-  const quizzes =
-    courseIds.length > 0
-      ? await countFrom('quizzes', (q) => q.in('course_id', courseIds))
-      : await countFrom('quizzes'); // fallback
-
-  const attempts = await countFrom('quiz_attempts', (q) => q.eq('user_id', studentId));
-
-  // courses count equals number of enrollments (unless duplicates exist)
-  const courses = enrollments;
-
-  return { courses, enrollments, assignments, quizzes, attempts };
-}
-
-// PUBLIC_INTERFACE
-export async function listRecentItems({ role, userId, limit = 5 } = {}) {
-  /**
-   * Returns recent items for dashboard side lists.
-   * - Admin: recent courses, quizzes, assignments (global)
-   * - Instructor: recent courses/quizzes/assignments under instructor
-   * - Student: recent enrollments (courses), assigned assignments (fallback: global), recent attempts
-   */
-  const r = String(role || '').toLowerCase();
-  const lim = Math.max(1, Math.min(20, Number(limit) || 5));
-
-  if (r === 'admin') {
-    const [courses, quizzes, assignments] = await Promise.all([
-      supabase.from('courses').select('id,title,created_at').order('created_at', { ascending: false }).limit(lim),
-      supabase.from('quizzes').select('id,title,created_at').order('created_at', { ascending: false }).limit(lim),
-      supabase.from('assignments').select('id,title,created_at').order('created_at', { ascending: false }).limit(lim),
-    ]);
-    if (courses.error || quizzes.error || assignments.error) throw new Error('Failed to load recent items.');
-    return {
-      courses: courses.data || [],
-      quizzes: quizzes.data || [],
-      assignments: assignments.data || [],
-    };
-  }
-
-  if (r === 'instructor') {
-    if (!userId) throw new Error('Missing instructor id');
-    const [courses, quizzes, assignments] = await Promise.all([
-      supabase
-        .from('courses')
-        .select('id,title,created_at')
-        .eq('instructor_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(lim),
-      supabase
-        .from('quizzes')
-        .select('id,title,created_at,course_id')
-        .order('created_at', { ascending: false })
-        .limit(200), // get many then filter client-side by my courses
-      supabase
-        .from('assignments')
-        .select('id,title,created_at,course_id')
-        .order('created_at', { ascending: false })
-        .limit(200),
-    ]);
-    if (courses.error || quizzes.error || assignments.error) throw new Error('Failed to load recent items.');
-
-    const myCourseIds = (courses.data || []).map((c) => c.id);
-    const quizzesFiltered = (quizzes.data || []).filter((q) => myCourseIds.includes(q.course_id)).slice(0, lim);
-    const assignmentsFiltered = (assignments.data || []).filter((a) => myCourseIds.includes(a.course_id)).slice(0, lim);
-
-    return {
-      courses: courses.data || [],
-      quizzes: quizzesFiltered,
-      assignments: assignmentsFiltered,
-    };
-  }
-
-  // student
-  if (!userId) throw new Error('Missing student id');
-
-  const [enrollments, assignments, attempts] = await Promise.all([
-    supabase
-      .from('enrollments')
-      .select('id,course_id,created_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(lim),
-    supabase.from('assignments').select('id,title,created_at,course_id').order('created_at', { ascending: false }).limit(200),
-    supabase
-      .from('quiz_attempts')
-      .select('id,quiz_id,score,total_points,created_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(lim),
-  ]);
-
-  if (enrollments.error || assignments.error || attempts.error) throw new Error('Failed to load recent items.');
-
-  const myCourseIds = (enrollments.data || []).map((e) => e.course_id);
-  const myAssignments =
-    myCourseIds.length > 0
-      ? (assignments.data || []).filter((a) => myCourseIds.includes(a.course_id)).slice(0, lim)
-      : (assignments.data || []).slice(0, lim);
-
-  return {
-    enrollments: enrollments.data || [],
-    assignments: myAssignments,
-    attempts: attempts.data || [],
-  };
-}
-
-export default {
-  getAdminCounts,
-  getInstructorCounts,
-  getStudentCounts,
-  listRecentItems,
+// Expected schema for profile "users" table used across pages.
+// Adjust fields to match your Supabase "users" (profile) table.
+const USER_SCHEMA = {
+  id: 'string',              // UUID - required for updates/deletes
+  email: 'string',           // unique email
+  role: 'string',            // 'admin' | 'instructor' | 'student'
+  full_name: 'string',       // display name
+  // avatar_url optional in create/update: we treat as 'any'
 };
+
+/**
+ * Internal: verify supabase client readiness.
+ */
+function ensureClient() {
+  if (!supabase) {
+    return shapeError(new Error('Supabase client not initialized'), 'CONFIG_ERROR', 500);
+  }
+  return { ok: true };
+}
+
+// PUBLIC_INTERFACE
+/**
+ * Create a user profile record in "users" table.
+ * Note: Supabase Auth user creation is separate (handled during sign up).
+ * @param {{email:string, role:string, full_name:string, avatar_url?:string}} payload
+ * @returns {Promise<{ok:true,data:any}|{ok:false,error:any}>}
+ */
+export async function createUser(payload) {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+
+  const requiredSchema = { email: 'string', role: 'string', full_name: 'string', avatar_url: 'any' };
+  const valid = validatePayload(requiredSchema, payload || {});
+  if (!valid.ok) return valid;
+
+  return safeExec(async () => {
+    const { data, error } = await supabase.from('users').insert(payload).select().single();
+    return { data, error };
+  }, 'USER_CREATE_FAILED', 400);
+}
+
+// PUBLIC_INTERFACE
+/**
+ * Get a user profile by id.
+ * @param {string} id
+ */
+export async function getUserById(id) {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+
+  if (!id || typeof id !== 'string') {
+    return shapeError(new Error('id is required'), 'VALIDATION_ERROR', 400);
+  }
+  return safeExec(async () => {
+    const { data, error } = await supabase.from('users').select('*').eq('id', id).single();
+    return { data, error };
+  }, 'USER_FETCH_FAILED', 404);
+}
+
+// PUBLIC_INTERFACE
+/**
+ * Get a user profile by email.
+ * @param {string} email
+ */
+export async function getUserByEmail(email) {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+  if (!email || typeof email !== 'string') {
+    return shapeError(new Error('email is required'), 'VALIDATION_ERROR', 400);
+  }
+  return safeExec(async () => {
+    const { data, error } = await supabase.from('users').select('*').eq('email', email).single();
+    return { data, error };
+  }, 'USER_FETCH_FAILED', 404);
+}
+
+// PUBLIC_INTERFACE
+/**
+ * List users with optional filters and pagination.
+ * @param {{role?: string, search?: string, page?: number, pageSize?: number}} options
+ */
+export async function listUsers(options = {}) {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+
+  const { role, search, page = 1, pageSize = 20 } = options;
+  const { from, to } = buildRange(page, pageSize);
+
+  return safeExec(async () => {
+    let query = supabase.from('users').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
+    if (role) query = query.eq('role', role);
+    if (search) {
+      // Simple ILIKE on name or email
+      query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
+    }
+    const { data, error, count } = await query;
+    return { data: { items: data, count }, error };
+  }, 'USER_LIST_FAILED', 400);
+}
+
+// PUBLIC_INTERFACE
+/**
+ * Update a user profile by id.
+ * @param {string} id
+ * @param {{email?:string, role?:string, full_name?:string, avatar_url?:string}} patch
+ */
+export async function updateUser(id, patch) {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+  if (!id || typeof id !== 'string') {
+    return shapeError(new Error('id is required'), 'VALIDATION_ERROR', 400);
+  }
+  if (!patch || typeof patch !== 'object' || !Object.keys(patch).length) {
+    return shapeError(new Error('patch must be a non-empty object'), 'VALIDATION_ERROR', 400);
+  }
+  const allowedKeys = ['email', 'role', 'full_name', 'avatar_url'];
+  const filtered = Object.keys(patch).reduce((acc, k) => {
+    if (allowedKeys.includes(k)) acc[k] = patch[k];
+    return acc;
+  }, {});
+  if (!Object.keys(filtered).length) {
+    return shapeError(new Error('No valid fields to update'), 'VALIDATION_ERROR', 400);
+  }
+
+  return safeExec(async () => {
+    const { data, error } = await supabase.from('users').update(filtered).eq('id', id).select().single();
+    return { data, error };
+  }, 'USER_UPDATE_FAILED', 400);
+}
+
+// PUBLIC_INTERFACE
+/**
+ * Delete a user profile by id.
+ * Note: This does not delete the Supabase Auth user.
+ * @param {string} id
+ */
+export async function deleteUser(id) {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+
+  if (!id || typeof id !== 'string') {
+    return shapeError(new Error('id is required'), 'VALIDATION_ERROR', 400);
+  }
+
+  return safeExec(async () => {
+    const { data, error } = await supabase.from('users').delete().eq('id', id).select().single();
+    return { data, error };
+  }, 'USER_DELETE_FAILED', 400);
+}
+
+// PUBLIC_INTERFACE
+/**
+ * Update current auth user's password via Supabase Auth.
+ * @param {string} newPassword
+ */
+export async function updatePassword(newPassword) {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+
+  if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
+    return shapeError(new Error('Password must be at least 8 characters'), 'VALIDATION_ERROR', 400);
+  }
+  return safeExec(async () => {
+    const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+    return { data, error };
+  }, 'PASSWORD_UPDATE_FAILED', 400);
+}
+
+// PUBLIC_INTERFACE
+/**
+ * Get the current authenticated user from Supabase Auth session.
+ */
+export async function getCurrentAuthUser() {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+
+  return safeExec(async () => {
+    const { data, error } = await supabase.auth.getUser();
+    return { data: data?.user || null, error };
+  }, 'AUTH_USER_FETCH_FAILED', 401);
+}
+
+/**
+ * PUBLIC_INTERFACE
+ * Get counts used by admin dashboard (users, courses, assignments, quizzes).
+ * This aggregates simple counts from multiple tables.
+ */
+export async function getAdminCounts() {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+
+  return safeExec(async () => {
+    const [{ count: usersCount, error: uErr }, { count: coursesCount, error: cErr }, { count: assignmentsCount, error: aErr }, { count: quizzesCount, error: qErr }] =
+      await Promise.all([
+        supabase.from('users').select('id', { count: 'exact', head: true }),
+        supabase.from('courses').select('id', { count: 'exact', head: true }),
+        supabase.from('assignments').select('id', { count: 'exact', head: true }),
+        supabase.from('quizzes').select('id', { count: 'exact', head: true }),
+      ]);
+
+    const combinedError = uErr || cErr || aErr || qErr || null;
+    return {
+      data: {
+        users: usersCount ?? 0,
+        courses: coursesCount ?? 0,
+        assignments: assignmentsCount ?? 0,
+        quizzes: quizzesCount ?? 0,
+      },
+      error: combinedError,
+    };
+  }, 'ADMIN_COUNTS_FAILED', 400);
+}
+
+/**
+ * PUBLIC_INTERFACE
+ * List recent items across key tables for admin dashboard.
+ * @param {{limit?: number}} options - max number of items per category (default 5)
+ * @returns {Promise<{ok:true,data:{users:any[],courses:any[],assignments:any[],quizzes:any[]}}|{ok:false,error:any}>}
+ */
+export async function listRecentItems(options = {}) {
+  const limit = Number.isFinite(options.limit) && options.limit > 0 ? Math.min(20, options.limit) : 5;
+
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+
+  return safeExec(async () => {
+    const [
+      { data: users, error: uErr },
+      { data: courses, error: cErr },
+      { data: assignments, error: aErr },
+      { data: quizzes, error: qErr },
+    ] = await Promise.all([
+      supabase.from('users').select('*').order('created_at', { ascending: false }).limit(limit),
+      supabase.from('courses').select('*').order('created_at', { ascending: false }).limit(limit),
+      supabase.from('assignments').select('*').order('created_at', { ascending: false }).limit(limit),
+      supabase.from('quizzes').select('*').order('created_at', { ascending: false }).limit(limit),
+    ]);
+
+    const error = uErr || cErr || aErr || qErr || null;
+    return { data: { users: users || [], courses: courses || [], assignments: assignments || [], quizzes: quizzes || [] }, error };
+  }, 'ADMIN_LIST_RECENT_FAILED', 400);
+}
