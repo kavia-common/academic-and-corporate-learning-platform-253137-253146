@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Container from '../components/layout/Container';
 import { Card, CardHeader, CardBody as CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -236,17 +235,16 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <Container>
-      <main className="w-full px-4 md:px-6 py-6 space-y-6" style={{ margin: '0 auto', maxWidth: 1280 }}>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Admin</h1>
-            <p className="text-gray-600 mt-1">Manage courses and assignments</p>
-          </div>
-          <div className="text-sm text-gray-500">
-            {user?.email ? `Signed in as ${user.email}` : ''}
-          </div>
+    <main className="w-full px-4 md:px-6 py-6 space-y-6" style={{ margin: '0 auto', maxWidth: 1280 }}>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Admin</h1>
+          <p className="text-gray-600 mt-1">Manage courses and assignments</p>
         </div>
+        <div className="text-sm text-gray-500">
+          {user?.email ? `Signed in as ${user.email}` : ''}
+        </div>
+      </div>
 
         {error && (
           <div className="rounded-md bg-red-50 border border-red-200 text-red-700 px-4 py-2">
@@ -424,6 +422,5 @@ export default function AdminDashboard() {
           </Card>
         </div>
       </main>
-    </Container>
   );
 }

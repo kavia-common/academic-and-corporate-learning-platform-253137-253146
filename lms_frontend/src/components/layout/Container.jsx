@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
-
+import Sidebar from './Sidebar';
 
 /**
  * PUBLIC_INTERFACE
- * Container provides the application shell layout (Sidebar only) and renders children as routed content.
+ * Container provides the application shell layout with a global left Sidebar and renders children as routed content.
  * - Handles responsive sidebar toggle on mobile
  * - Exposes skip link for accessibility
+ * - Keeps previously removed elements (top-right Home link, secondary nav, right-side strip) absent
  */
 export default function Container({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -19,25 +20,63 @@ export default function Container({ children }) {
     return () => document.removeEventListener('keydown', closeOnEscape);
   }, [closeOnEscape]);
 
-  // Layout: single column content area. Sidebar removed per UI cleanup.
+  // Layout: Sidebar (fixed width) + main content (flex:1).
   return (
-    <div className="app-shell" style={{ background: 'var(--color-background)', color: 'var(--color-text)' }}>
+    <div
+      className="app-shell"
+      style={{
+        background: 'var(--color-background)',
+        color: 'var(--color-text)',
+        minHeight: '100vh',
+      }}
+    >
       <a href="#main" className="skip-link">Skip to content</a>
-      <main
-        id="main"
-        className="app-shell__content"
-        role="main"
-        tabIndex={-1}
+
+      <div
+        className="app-shell__row"
         style={{
-          padding: 24,
-          background: 'var(--color-background)',
-          minHeight: '100vh'
+          display: 'flex',
+          alignItems: 'stretch',
+          minHeight: '100vh',
+          width: '100%',
         }}
       >
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          {children}
+        {/* Left Sidebar (fixed width) */}
+        <div
+          className="app-shell__sidebar"
+          style={{
+            width: 256,
+            flex: '0 0 256px',
+            background: '#ffffff',
+            borderRight: '1px solid #e5e7eb',
+            position: 'sticky',
+            top: 0,
+            height: '100vh',
+            overflowY: 'auto',
+          }}
+          aria-hidden={false}
+        >
+          <Sidebar onNavigate={() => setSidebarOpen(false)} />
         </div>
-      </main>
+
+        {/* Main content area */}
+        <main
+          id="main"
+          className="app-shell__content"
+          role="main"
+          tabIndex={-1}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            padding: 24,
+            background: 'var(--color-background)',
+          }}
+        >
+          <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
