@@ -60,6 +60,9 @@ export default function TopBar({ onMenuToggle }) {
         </Link>
         {isAuthed ? (
           <>
+            <Link to="/profile" className="link" aria-label="Go to profile" style={{ marginRight: 8 }}>
+              Profile
+            </Link>
             <span style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>
               {user?.email}
             </span>

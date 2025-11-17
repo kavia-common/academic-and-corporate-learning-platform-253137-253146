@@ -57,6 +57,12 @@ export default function Sidebar({ onNavigate }) {
                 </NavLink>
               </li>
             )}
+            <li>
+              <NavLink to="/profile" onClick={onNavigate}>
+                <span>👤</span>
+                <span>Profile</span>
+              </NavLink>
+            </li>
           </>
         )}
 

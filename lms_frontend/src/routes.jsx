@@ -18,6 +18,7 @@ import QuizList from './quizzes/QuizList';
 import QuizCreate from './quizzes/QuizCreate';
 import QuizDetail from './quizzes/QuizDetail';
 import QuizTake from './quizzes/QuizTake';
+import ProfilePage from './auth/pages/Profile';
 
 // PUBLIC_INTERFACE
 export function HomePage() {
@@ -108,6 +109,7 @@ export default function ApplicationRoutes() {
       {/* Protected user routes */}
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
 
         {/* Admin-only section */}
         <Route element={<RoleRoute allowedRoles={['admin']} />}>
