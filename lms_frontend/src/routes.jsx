@@ -7,6 +7,9 @@ import SignIn from './auth/pages/SignIn';
 import SignUp from './auth/pages/SignUp';
 import ResetPassword from './auth/pages/ResetPassword';
 import VerifyEmail from './auth/pages/VerifyEmail';
+import CourseList from './courses/CourseList';
+import CourseDetail from './courses/CourseDetail';
+import CourseForm from './courses/CourseForm';
 
 // PUBLIC_INTERFACE
 export function HomePage() {
@@ -20,10 +23,11 @@ export function HomePage() {
       {notice ? (
         <p style={{ marginTop: 12, color: 'var(--text-secondary)' }}>{notice}</p>
       ) : null}
-      <nav style={{ marginTop: 16, display: 'flex', gap: 12 }}>
+      <nav style={{ marginTop: 16, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         <Link className="link" to="/dashboard">Dashboard</Link>
         <Link className="link" to="/admin">Admin</Link>
         <Link className="link" to="/instructor">Instructor</Link>
+        <Link className="link" to="/courses">Courses</Link>
         <Link className="link" to="/login">Sign in</Link>
         <Link className="link" to="/signup">Sign up</Link>
       </nav>
@@ -76,6 +80,10 @@ export default function ApplicationRoutes() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
 
+      {/* Public courses list and detail (viewable by all), edit/create protected */}
+      <Route path="/courses" element={<CourseList />} />
+      <Route path="/courses/:id" element={<CourseDetail />} />
+
       {/* Protected user routes */}
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
@@ -85,8 +93,10 @@ export default function ApplicationRoutes() {
           <Route path="/admin" element={<AdminPage />} />
         </Route>
 
-        {/* Instructor-only section */}
-        <Route element={<RoleRoute allowedRoles={['instructor']} />}>
+        {/* Instructor/admin: create/edit courses */}
+        <Route element={<RoleRoute allowedRoles={['instructor', 'admin']} />}>
+          <Route path="/courses/new" element={<CourseForm />} />
+          <Route path="/courses/:id/edit" element={<CourseForm />} />
           <Route path="/instructor" element={<InstructorPage />} />
         </Route>
       </Route>
