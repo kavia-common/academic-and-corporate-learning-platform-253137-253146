@@ -21,6 +21,11 @@ export default function TopBar({ onMenuToggle }) {
         gap: 12,
         padding: '10px 14px',
         justifyContent: 'space-between',
+        background: 'var(--color-surface)',
+        color: 'var(--color-text)',
+        borderBottom: 'var(--border)',
+        position: 'relative',
+        zIndex: 10
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

@@ -15,7 +15,10 @@ export default function Sidebar({ onNavigate }) {
   const r = String(role || '').toLowerCase();
 
   return (
-    <nav aria-label="Primary Navigation" style={{ padding: 12 }}>
+    <nav
+      aria-label="Primary Navigation"
+      style={{ padding: 12, background: 'var(--color-surface)', color: 'var(--color-text)' }}
+    >
       <div className="card" style={{ padding: 12, marginBottom: 12, background: 'var(--color-surface)' }}>
         <div
           style={{

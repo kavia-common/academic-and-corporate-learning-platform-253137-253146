@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import './styles/theme.css';
 import { BrowserRouter } from 'react-router-dom';
 import ApplicationRoutes from './routes';
 import Container from './components/layout/Container';

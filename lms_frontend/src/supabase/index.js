@@ -42,6 +42,11 @@ export {
   createQuiz,
   updateQuiz,
   deleteQuiz,
+  createQuestions,
+  getQuizById,
+  getQuestions,
+  listAttempts,
+  listQuizzes,
 } from './supabaseQuizzes';
 
 // Storage

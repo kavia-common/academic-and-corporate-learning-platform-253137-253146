@@ -249,3 +249,121 @@ export async function listRecentItems(options = {}) {
     return { data: { users: users || [], courses: courses || [], assignments: assignments || [], quizzes: quizzes || [] }, error };
   }, 'ADMIN_LIST_RECENT_FAILED', 400);
 }
+
+/**
+ * PUBLIC_INTERFACE
+ * getInstructorCounts - Aggregated metrics for a given instructor.
+ * @param {string} instructorId
+ * @returns {Promise<{ok:true,data:{courses:number,enrollments:number,assignments:number,quizzes:number,attempts:number}}|{ok:false,error:any}>}
+ */
+export async function getInstructorCounts(instructorId) {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+  if (!instructorId || typeof instructorId !== 'string') {
+    return shapeError(new Error('instructorId is required'), 'VALIDATION_ERROR', 400);
+  }
+
+  return safeExec(async () => {
+    const [
+      { count: coursesCount, error: cErr },
+      { count: enrollCount, error: eErr },
+      { count: assignmentsCount, error: aErr },
+      { count: quizzesCount, error: qErr },
+      { count: attemptsCount, error: tErr },
+    ] = await Promise.all([
+      supabase.from('courses').select('id', { count: 'exact', head: true }).eq('instructor_id', instructorId),
+      supabase.from('enrollments').select('id', { count: 'exact', head: true }).eq('instructor_id', instructorId),
+      supabase.from('assignments').select('id', { count: 'exact', head: true }).eq('instructor_id', instructorId),
+      supabase.from('quizzes').select('id', { count: 'exact', head: true }).eq('instructor_id', instructorId),
+      supabase.from('quiz_attempts').select('id', { count: 'exact', head: true }).eq('instructor_id', instructorId),
+    ]);
+
+    const error = cErr || eErr || aErr || qErr || tErr || null;
+    return {
+      data: {
+        courses: coursesCount ?? 0,
+        enrollments: enrollCount ?? 0,
+        assignments: assignmentsCount ?? 0,
+        quizzes: quizzesCount ?? 0,
+        attempts: attemptsCount ?? 0,
+      },
+      error,
+    };
+  }, 'INSTRUCTOR_COUNTS_FAILED', 400);
+}
+
+/**
+ * PUBLIC_INTERFACE
+ * listRecentItems (instructor scope) - recent courses/quizzes/assignments owned by instructor.
+ * @param {{role:'instructor', userId:string, limit?:number}} options
+ */
+export async function listRecentItemsForInstructor(options = {}) {
+  const { userId, limit: rawLimit } = options || {};
+  const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(20, rawLimit) : 5;
+
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+  if (!userId || typeof userId !== 'string') {
+    return shapeError(new Error('userId is required'), 'VALIDATION_ERROR', 400);
+  }
+
+  return safeExec(async () => {
+    const [
+      { data: courses, error: cErr },
+      { data: quizzes, error: qErr },
+      { data: assignments, error: aErr },
+    ] = await Promise.all([
+      supabase.from('courses').select('*').eq('instructor_id', userId).order('created_at', { ascending: false }).limit(limit),
+      supabase.from('quizzes').select('*').eq('instructor_id', userId).order('created_at', { ascending: false }).limit(limit),
+      supabase.from('assignments').select('*').eq('instructor_id', userId).order('created_at', { ascending: false }).limit(limit),
+    ]);
+
+    const error = cErr || qErr || aErr || null;
+    return { data: { courses: courses || [], quizzes: quizzes || [], assignments: assignments || [] }, error };
+  }, 'INSTRUCTOR_LIST_RECENT_FAILED', 400);
+}
+
+/**
+ * PUBLIC_INTERFACE
+ * getStudentCounts - Aggregated metrics for a given student/user.
+ * @param {string} studentId
+ * @returns {Promise<{ok:true,data:{courses:number,enrollments:number,assignments:number,quizzes:number,attempts:number}}|{ok:false,error:any}>}
+ */
+export async function getStudentCounts(studentId) {
+  const ready = ensureClient();
+  if (!ready.ok) return ready;
+  if (!studentId || typeof studentId !== 'string') {
+    return shapeError(new Error('studentId is required'), 'VALIDATION_ERROR', 400);
+  }
+
+  return safeExec(async () => {
+    const [
+      // number of distinct courses via enrollments
+      { count: enrollCount, error: eErr },
+      // assignments available to this student (e.g., by enrollment mapping)
+      { count: assignmentsCount, error: aErr },
+      // quizzes available to this student (by enrollment or visibility)
+      { count: quizzesCount, error: qErr },
+      // attempts made by this student
+      { count: attemptsCount, error: tErr },
+    ] = await Promise.all([
+      supabase.from('enrollments').select('id', { count: 'exact', head: true }).eq('student_id', studentId),
+      supabase.from('assignments').select('id', { count: 'exact', head: true }).eq('student_id', studentId),
+      supabase.from('quizzes').select('id', { count: 'exact', head: true }).eq('student_id', studentId),
+      supabase.from('quiz_attempts').select('id', { count: 'exact', head: true }).eq('student_id', studentId),
+    ]);
+
+    // courses equals enrollments for dashboard display; if schema includes course link different from enrollments, adjust accordingly
+    const error = eErr || aErr || qErr || tErr || null;
+    return {
+      data: {
+        courses: enrollCount ?? 0,
+        enrollments: enrollCount ?? 0,
+        assignments: assignmentsCount ?? 0,
+        quizzes: quizzesCount ?? 0,
+        attempts: attemptsCount ?? 0,
+      },
+      error,
+    };
+  }, 'STUDENT_COUNTS_FAILED', 400);
+}

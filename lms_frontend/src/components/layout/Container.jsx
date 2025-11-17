@@ -21,7 +21,7 @@ export default function Container({ children }) {
   }, [closeOnEscape]);
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}>
       <a href="#main" className="skip-link">Skip to content</a>
 
       <aside
