@@ -10,6 +10,10 @@ import VerifyEmail from './auth/pages/VerifyEmail';
 import CourseList from './courses/CourseList';
 import CourseDetail from './courses/CourseDetail';
 import CourseForm from './courses/CourseForm';
+import AssignmentList from './assignments/AssignmentList';
+import AssignmentDetail from './assignments/AssignmentDetail';
+import AssignmentCreate from './assignments/AssignmentCreate';
+import SubmissionList from './assignments/SubmissionList';
 
 // PUBLIC_INTERFACE
 export function HomePage() {
@@ -84,6 +88,12 @@ export default function ApplicationRoutes() {
       <Route path="/courses" element={<CourseList />} />
       <Route path="/courses/:id" element={<CourseDetail />} />
 
+      {/* Public/Contextual assignment lists and detail */}
+      {/* List assignments for a specific course (public view) */}
+      <Route path="/courses/:courseId/assignments" element={<AssignmentList />} />
+      {/* Assignment detail (public view), submission gated in component by role */}
+      <Route path="/assignments/:id" element={<AssignmentDetail />} />
+
       {/* Protected user routes */}
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
@@ -93,11 +103,21 @@ export default function ApplicationRoutes() {
           <Route path="/admin" element={<AdminPage />} />
         </Route>
 
-        {/* Instructor/admin: create/edit courses */}
+        {/* Instructor/admin: create/edit courses and manage assignments */}
         <Route element={<RoleRoute allowedRoles={['instructor', 'admin']} />}>
           <Route path="/courses/new" element={<CourseForm />} />
           <Route path="/courses/:id/edit" element={<CourseForm />} />
           <Route path="/instructor" element={<InstructorPage />} />
+
+          {/* Create assignment under a course */}
+          <Route path="/courses/:courseId/assignments/new" element={<AssignmentCreate />} />
+          {/* View submissions for an assignment */}
+          <Route path="/assignments/:id/submissions" element={<SubmissionList />} />
+        </Route>
+
+        {/* Student: mine list (optionally protected) */}
+        <Route element={<RoleRoute allowedRoles={['student']} />}>
+          <Route path="/assignments" element={<AssignmentList />} />
         </Route>
       </Route>
 

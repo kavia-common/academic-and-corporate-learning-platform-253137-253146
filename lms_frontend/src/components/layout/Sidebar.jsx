@@ -42,12 +42,22 @@ export default function Sidebar({ onNavigate }) {
         </li>
 
         {isAuthed && (
-          <li>
-            <NavLink to="/dashboard" onClick={onNavigate}>
-              <span>📊</span>
-              <span>Dashboard</span>
-            </NavLink>
-          </li>
+          <>
+            <li>
+              <NavLink to="/dashboard" onClick={onNavigate}>
+                <span>📊</span>
+                <span>Dashboard</span>
+              </NavLink>
+            </li>
+            {r === 'student' && (
+              <li>
+                <NavLink to="/assignments" onClick={onNavigate}>
+                  <span>📝</span>
+                  <span>My Assignments</span>
+                </NavLink>
+              </li>
+            )}
+          </>
         )}
 
         <li>
@@ -67,12 +77,20 @@ export default function Sidebar({ onNavigate }) {
         )}
 
         {isAuthed && (r === 'instructor') && (
-          <li>
-            <NavLink to="/instructor" onClick={onNavigate}>
-              <span>📚</span>
-              <span>Instructor</span>
-            </NavLink>
-          </li>
+          <>
+            <li>
+              <NavLink to="/instructor" onClick={onNavigate}>
+                <span>📚</span>
+                <span>Instructor</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/assignments" onClick={onNavigate}>
+                <span>📝</span>
+                <span>Assignments</span>
+              </NavLink>
+            </li>
+          </>
         )}
 
         {!isAuthed && (
