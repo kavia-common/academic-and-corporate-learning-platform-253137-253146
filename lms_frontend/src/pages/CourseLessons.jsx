@@ -1,15 +1,15 @@
 import React from "react";
 import { Link, useParams } from "react-router-dom";
-import { getCourseById, getLessonsByCourse } from "../data/learningData";
+import { getCourseById, getModulesByCourse } from "../data/learningData";
 
 /**
- * CourseLessons page shows lessons for a course.
+ * CourseLessons page shows modules for a course. For course_id 102, example modules are shown.
  * URL: /courses/:courseId
  */
 export default function CourseLessons() {
   const { courseId } = useParams();
   const course = getCourseById(courseId);
-  const lessons = getLessonsByCourse(courseId);
+  const modules = getModulesByCourse(courseId);
 
   if (!course) {
     return (
@@ -43,21 +43,21 @@ export default function CourseLessons() {
 
       <div className="card bg-white rounded-lg shadow-sm">
         <div className="p-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-800">Lessons</h2>
-          {lessons.length === 0 && (
+          <h2 className="text-lg font-semibold text-gray-800">Modules</h2>
+          {Number(courseId) !== 102 && modules.length === 0 && (
             <p className="text-sm text-gray-600 mt-1">
-              Sample lessons are currently available for "React for Beginners" only.
+              Sample modules are currently available for "React for Beginners" only (course 102).
             </p>
           )}
         </div>
         <ul className="divide-y">
-          {lessons.map((lesson) => (
-            <li key={lesson.id} className="p-4 flex items-center justify-between">
+          {modules.map((mod) => (
+            <li key={mod.module_id} className="p-4 flex items-center justify-between">
               <div>
-                <p className="font-medium text-gray-900">{lesson.title}</p>
-                <p className="text-sm text-gray-600">Type: {lesson.type}</p>
+                <p className="font-medium text-gray-900">{mod.title}</p>
+                <p className="text-sm text-gray-600">Type: {mod.type}</p>
               </div>
-              <span className="text-sm text-gray-500">{lesson.duration}</span>
+              <span className="text-sm text-gray-500">{mod.duration}</span>
             </li>
           ))}
         </ul>

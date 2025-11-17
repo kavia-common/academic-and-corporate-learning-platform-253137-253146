@@ -41,9 +41,9 @@ function App() {
           aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
           style={{
             position: 'fixed',
-            bottom: 16,
-            right: 16,
-            zIndex: 50
+            bottom: 1,
+            right: 1,
+            zIndex: 5
           }}
         >
           {theme === 'light' ? '🌙 Dark' : '☀️ Light'}

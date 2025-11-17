@@ -18,7 +18,7 @@ export default function Paths() {
 
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {LEARNING_PATHS.map((path) => (
-          <div key={path.id} className="card overflow-hidden shadow-sm rounded-lg bg-white">
+          <div key={path.path_id} className="card overflow-hidden shadow-sm rounded-lg bg-white">
             <div className="h-40 w-full overflow-hidden">
               <img
                 src={path.image}
@@ -32,7 +32,7 @@ export default function Paths() {
               <p className="text-sm text-gray-600 mt-1">{path.description}</p>
               <div className="mt-3">
                 <Link
-                  to={`/paths/${encodeURIComponent(path.id)}`}
+                  to={`/paths/${encodeURIComponent(path.path_id)}`}
                   className="btn inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
                   aria-label={`View courses in ${path.title}`}
                 >
