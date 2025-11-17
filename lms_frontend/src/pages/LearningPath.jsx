@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from 'react';
-import { learningPath } from '../data/learningData';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../components/ui/Modal';
 import { Card, CardBody, CardHeader } from '../components/ui/Card';
+import { getAggregatedLearningPath, getLearningPathByIdOrDefault, subscribe } from '../store/localStore';
 
 /**
  * PUBLIC_INTERFACE
@@ -9,14 +9,20 @@ import { Card, CardBody, CardHeader } from '../components/ui/Card';
  * - Route: /learning-path
  * - Shows cover, title, description
  * - For each course in learningPath.courses, renders a grid of lesson cards
- * - Clicking a lesson opens a simple video player (iframe for Drive preview; fallback to native video)
+ * - Clicking a lesson opens a simple video player
  * - Ocean Professional theme applied via ocean-* classes with accessible focus states
  */
 export default function LearningPath() {
   const [playerOpen, setPlayerOpen] = useState(false);
   const [activeLesson, setActiveLesson] = useState(null);
+  const [path, setPath] = useState(() => getAggregatedLearningPath());
 
-  const path = learningPath;
+  useEffect(() => {
+    const refresh = () => setPath(getAggregatedLearningPath());
+    const unsub = subscribe(refresh);
+    refresh();
+    return () => unsub();
+  }, []);
 
   const onOpenLesson = (lesson) => {
     setActiveLesson(lesson);

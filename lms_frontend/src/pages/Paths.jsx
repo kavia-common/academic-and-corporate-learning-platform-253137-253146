@@ -1,12 +1,23 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { courses } from "../data/learningData";
+import { listCourses, subscribe } from "../store/localStore";
 
 /**
  * Courses page lists all items (formerly learning paths) with image, title, and description.
  * Uses Ocean Professional theme-like classes (card, btn, nav-link).
+ * Reads from localStore overlay so Admin changes reflect immediately.
  */
 export default function Paths() {
+  const [items, setItems] = useState(() => listCourses());
+
+  useEffect(() => {
+    // Refresh on store updates and cross-tab storage events
+    const unsub = subscribe(() => setItems(listCourses()));
+    // Also refresh on mount to ensure latest overlay is applied
+    setItems(listCourses());
+    return () => unsub();
+  }, []);
+
   return (
     <div className="p-4 md:p-6">
       <div className="flex items-center justify-between mb-4">
@@ -17,7 +28,7 @@ export default function Paths() {
       </div>
 
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {courses.map((item) => (
+        {items.map((item) => (
           <div key={item.id} className="card overflow-hidden shadow-sm rounded-lg bg-white">
             <div className="h-40 w-full overflow-hidden">
               <img
@@ -42,6 +53,11 @@ export default function Paths() {
             </div>
           </div>
         ))}
+        {items.length === 0 && (
+          <div className="card p-4 bg-white">
+            <p className="text-gray-600">No courses available.</p>
+          </div>
+        )}
       </div>
     </div>
   );

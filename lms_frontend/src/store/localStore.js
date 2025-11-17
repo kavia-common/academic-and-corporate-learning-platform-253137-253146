@@ -6,6 +6,24 @@ const LS_KEYS = {
   learningPaths: 'lms.learningPaths',
 };
 
+// Simple pub/sub for store updates (within-tab) + storage event (cross-tab)
+const listeners = new Set();
+function emitChange(type) {
+  listeners.forEach((cb) => {
+    try {
+      cb(type);
+    } catch {
+      // ignore listener errors
+    }
+  });
+}
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === LS_KEYS.courses) emitChange('courses');
+    if (e.key === LS_KEYS.learningPaths) emitChange('learningPaths');
+  });
+}
+
 // Utility to safely parse JSON from localStorage
 function readLocal(key) {
   try {
@@ -71,12 +89,26 @@ export function getAllCourses() {
 }
 
 // PUBLIC_INTERFACE
+export function listCourses() {
+  /** Alias for getAllCourses for selector naming consistency. */
+  return getMergedCourses();
+}
+
+// PUBLIC_INTERFACE
+export function getCourseById(id) {
+  /** Retrieve a course by id from merged view (initial + overlay). */
+  const cid = String(id);
+  return getMergedCourses().find((c) => String(c.id) === cid);
+}
+
+// PUBLIC_INTERFACE
 export function addCourse(course) {
   /** Add a new course to localStorage overlay. Required: title, description, image */
   const existing = readLocal(LS_KEYS.courses) || [];
   const id = course.id ?? generateId('course');
   const newCourse = { id, ...course };
   writeLocal(LS_KEYS.courses, [...existing, newCourse]);
+  emitChange('courses');
   return newCourse;
 }
 
@@ -94,12 +126,19 @@ export function updateCourse(id, patch) {
   // ensure overlay contains updated version
   overById.set(String(id), updated);
   writeLocal(LS_KEYS.courses, Array.from(overById.values()));
+  emitChange('courses');
   return updated;
 }
 
 // PUBLIC_INTERFACE
 export function getAllLearningPaths() {
   /** Get all learning paths merged from initial data and localStorage overlay. */
+  return getMergedLearningPaths();
+}
+
+// PUBLIC_INTERFACE
+export function listLearningPaths() {
+  /** Alias for getAllLearningPaths. */
   return getMergedLearningPaths();
 }
 
@@ -116,6 +155,7 @@ export function addLearningPath(path) {
     courseIds: Array.isArray(path.courseIds) ? path.courseIds : [],
   };
   writeLocal(LS_KEYS.learningPaths, [...existing, normalized]);
+  emitChange('learningPaths');
   return normalized;
 }
 
@@ -138,5 +178,37 @@ export function updateLearningPath(id, patch) {
   };
   overById.set(String(id), updated);
   writeLocal(LS_KEYS.learningPaths, Array.from(overById.values()));
+  emitChange('learningPaths');
   return updated;
+}
+
+// PUBLIC_INTERFACE
+export function getLearningPathByIdOrDefault(id) {
+  /**
+   * Retrieve a learning path by id or fall back to the initial aggregated path if present.
+   * If id is falsy, returns the first path available.
+   */
+  const all = getMergedLearningPaths();
+  if (!id) return all[0];
+  const found = all.find((p) => String(p.id) === String(id));
+  return found || all[0];
+}
+
+// PUBLIC_INTERFACE
+export function getAggregatedLearningPath() {
+  /**
+   * Returns the default aggregated learning path (first available).
+   * This mirrors earlier usage of a single exported learningPath object.
+   */
+  return getLearningPathByIdOrDefault(null);
+}
+
+// PUBLIC_INTERFACE
+export function subscribe(callback) {
+  /**
+   * Subscribe to store update notifications (in-tab). Also receives cross-tab updates via storage events.
+   * Returns an unsubscribe function.
+   */
+  listeners.add(callback);
+  return () => listeners.delete(callback);
 }

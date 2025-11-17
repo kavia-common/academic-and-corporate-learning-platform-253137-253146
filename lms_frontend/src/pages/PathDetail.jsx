@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getCourseById } from "../data/learningData";
+import { getCourseById as storeGetCourseById, subscribe } from "../store/localStore";
 
 /**
  * Course Detail page shows a single Course (formerly path): image, title, description.
@@ -10,7 +10,17 @@ export default function PathDetail() {
   const { pathId, id } = useParams();
   // Allow backward compatibility if route still uses :pathId temporarily
   const effectiveId = id ?? pathId;
-  const course = getCourseById(effectiveId);
+  const [course, setCourse] = useState(() => storeGetCourseById(effectiveId));
+
+  useEffect(() => {
+    // Refresh when id changes or store updates
+    function refresh() {
+      setCourse(storeGetCourseById(effectiveId));
+    }
+    const unsub = subscribe(refresh);
+    refresh();
+    return () => unsub();
+  }, [effectiveId]);
 
   if (!course) {
     return (
