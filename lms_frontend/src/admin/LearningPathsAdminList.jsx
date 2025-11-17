@@ -1,14 +1,37 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllLearningPaths, getAllCourses } from '../store/localStore';
+import {
+  listLearningPaths,
+  getAllCourses,
+  removeLearningPath,
+  subscribe,
+} from '../store/localStore';
 
 export default function LearningPathsAdminList() {
-  const paths = useMemo(() => getAllLearningPaths(), []);
+  const [paths, setPaths] = useState(() => listLearningPaths());
+
+  useEffect(() => {
+    const unsub = subscribe(() => setPaths(listLearningPaths()));
+    // ensure latest snapshot on mount
+    setPaths(listLearningPaths());
+    return () => unsub();
+  }, []);
+
   const courseMap = useMemo(() => {
     const arr = getAllCourses();
     const map = new Map(arr.map((c) => [String(c.id), c]));
     return map;
   }, []);
+
+  const onDelete = (id) => {
+    // Basic confirm for demo
+    // eslint-disable-next-line no-alert
+    const ok = window.confirm('Delete this learning path?');
+    if (!ok) return;
+    removeLearningPath(id);
+    // subscribe() will refresh, but we also optimistically update for snappier UI
+    setPaths((prev) => prev.filter((p) => String(p.id) !== String(id)));
+  };
 
   return (
     <div className="ocean-container">
@@ -18,8 +41,9 @@ export default function LearningPathsAdminList() {
           Demo-only admin (client-side). For production, wire to backend with auth.
         </span>
       </div>
-      <div className="mt-4">
+      <div className="mt-4 flex items-center gap-3">
         <Link to="/admin/learning-paths/new" className="ocean-button btn">New Learning Path</Link>
+        <Link to="/learning-path" className="nav-link text-blue-600 hover:underline">View Public Page</Link>
       </div>
       <div className="ocean-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
         {paths.map((p) => (
@@ -36,10 +60,17 @@ export default function LearningPathsAdminList() {
                 <p className="text-xs text-gray-500 mt-1">{Array.isArray(p.courseIds) ? p.courseIds.length : 0} courses</p>
               </div>
             </div>
-            <div className="mt-3">
+            <div className="mt-3 flex items-center gap-4">
               <Link to={`/admin/learning-paths/${p.id}/edit`} className="text-blue-600 hover:underline nav-link">
                 Edit
               </Link>
+              <button
+                type="button"
+                className="text-red-600 hover:underline nav-link"
+                onClick={() => onDelete(p.id)}
+              >
+                Delete
+              </button>
             </div>
             {Array.isArray(p.courseIds) && p.courseIds.length > 0 && (
               <ul className="mt-2 text-sm list-disc list-inside text-gray-700">

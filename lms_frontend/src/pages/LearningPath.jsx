@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../components/ui/Modal';
 import { Card, CardBody, CardHeader } from '../components/ui/Card';
-import { getAggregatedLearningPath, getLearningPathByIdOrDefault, subscribe } from '../store/localStore';
+import { getAggregatedLearningPath, subscribe } from '../store/localStore';
 
 /**
  * PUBLIC_INTERFACE
@@ -64,6 +64,8 @@ export default function LearningPath() {
     );
   }
 
+  const coverUrl = path.cover || path.coverImage;
+
   return (
     <div className="ocean-bg">
       <header className="ocean-header ocean-container" role="banner">
@@ -76,11 +78,11 @@ export default function LearningPath() {
 
       <div className="ocean-container ocean-section">
         {/* Cover card */}
-        {path.cover && (
+        {coverUrl && (
           <div className="card ocean-card overflow-hidden">
             <div className="w-full overflow-hidden">
               <img
-                src={path.cover}
+                src={coverUrl}
                 alt={path.title}
                 className="ocean-thumb"
                 loading="lazy"

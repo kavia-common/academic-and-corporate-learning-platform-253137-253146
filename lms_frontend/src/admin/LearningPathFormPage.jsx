@@ -1,6 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { addLearningPath, getAllCourses, getAllLearningPaths, updateLearningPath } from '../store/localStore';
+import {
+  addLearningPath,
+  getAllCourses,
+  getLearningPathById,
+  updateLearningPath,
+  subscribe,
+} from '../store/localStore';
 
 const initialForm = {
   title: '',
@@ -11,9 +17,13 @@ const initialForm = {
 
 function validate(values) {
   const errors = {};
-  if (!values.title?.trim()) errors.title = 'Name/Title is required';
-  if (!values.description?.trim()) errors.description = 'Description is required';
-  if (!values.coverImage?.trim()) errors.coverImage = 'Cover image URL is required';
+  if (!values.title?.trim()) errors.title = 'Title is required';
+  // description optional to keep minimal per instructions; keep if required:
+  // if (!values.description?.trim()) errors.description = 'Description is required';
+  // coverImage optional; optionally validate URL format
+  if (values.coverImage && !/^https?:\/\//i.test(values.coverImage)) {
+    errors.coverImage = 'Provide a valid URL (http/https) or leave blank';
+  }
   return errors;
 }
 
@@ -21,23 +31,31 @@ export default function LearningPathFormPage() {
   const { id } = useParams();
   const isEdit = Boolean(id);
   const navigate = useNavigate();
-  const allPaths = useMemo(() => getAllLearningPaths(), []);
-  const allCourses = useMemo(() => getAllCourses(), []);
-  const existing = isEdit ? allPaths.find((p) => String(p.id) === String(id)) : null;
 
+  const allCourses = useMemo(() => getAllCourses(), []);
   const [values, setValues] = useState(initialForm);
   const [errors, setErrors] = useState({});
 
+  // Load existing path for edit and keep in sync with store changes
   useEffect(() => {
-    if (existing) {
-      setValues({
-        title: existing.title ?? '',
-        description: existing.description ?? '',
-        coverImage: existing.coverImage ?? '',
-        courseIds: Array.isArray(existing.courseIds) ? existing.courseIds.map(String) : [],
-      });
-    }
-  }, [existing]);
+    const load = () => {
+      if (isEdit) {
+        const existing = getLearningPathById(id);
+        if (existing) {
+          setValues({
+            title: existing.title ?? '',
+            description: existing.description ?? '',
+            coverImage: existing.coverImage ?? existing.image ?? '',
+            courseIds: Array.isArray(existing.courseIds) ? existing.courseIds.map(String) : [],
+          });
+        }
+      }
+    };
+    load();
+    const unsub = subscribe(load);
+    return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEdit, id]);
 
   function onChange(e) {
     const { name, value } = e.target;
@@ -47,7 +65,7 @@ export default function LearningPathFormPage() {
   function onToggleCourse(e) {
     const { value, checked } = e.target;
     setValues((v) => {
-      const set = new Set(v.courseIds.map(String));
+      const set = new Set((v.courseIds || []).map(String));
       if (checked) set.add(String(value));
       else set.delete(String(value));
       return { ...v, courseIds: Array.from(set) };
@@ -60,7 +78,14 @@ export default function LearningPathFormPage() {
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
-    const payload = { ...values, courseIds: values.courseIds.map(String) };
+    // Normalize payload for store: { id?, title, description, coverImage, courseIds[] }
+    const payload = {
+      title: values.title.trim(),
+      description: values.description,
+      coverImage: values.coverImage,
+      courseIds: (values.courseIds || []).map(String),
+    };
+
     if (isEdit) {
       updateLearningPath(id, payload);
     } else {
@@ -80,7 +105,7 @@ export default function LearningPathFormPage() {
 
       <form onSubmit={onSubmit} className="ocean-card p-6 mt-4 space-y-4" noValidate>
         <div>
-          <label htmlFor="title" className="block text-sm font-medium">Name/Title</label>
+          <label htmlFor="title" className="block text-sm font-medium">Title</label>
           <input
             id="title"
             name="title"
@@ -88,13 +113,14 @@ export default function LearningPathFormPage() {
             aria-invalid={Boolean(errors.title)}
             value={values.title}
             onChange={onChange}
-            placeholder="Enter learning path name"
+            placeholder="Enter learning path title"
+            required
           />
           {errors.title && <p className="text-sm text-red-600 mt-1">{errors.title}</p>}
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium">Description</label>
+          <label htmlFor="description" className="block text-sm font-medium">Description (optional)</label>
           <textarea
             id="description"
             name="description"
@@ -109,7 +135,7 @@ export default function LearningPathFormPage() {
         </div>
 
         <div>
-          <label htmlFor="coverImage" className="block text-sm font-medium">Cover Image URL</label>
+          <label htmlFor="coverImage" className="block text-sm font-medium">Cover Image URL (optional)</label>
           <input
             id="coverImage"
             name="coverImage"
@@ -118,6 +144,7 @@ export default function LearningPathFormPage() {
             value={values.coverImage}
             onChange={onChange}
             placeholder="https://..."
+            inputMode="url"
           />
           {errors.coverImage && <p className="text-sm text-red-600 mt-1">{errors.coverImage}</p>}
         </div>
@@ -130,7 +157,7 @@ export default function LearningPathFormPage() {
                 <input
                   type="checkbox"
                   value={String(c.id)}
-                  checked={values.courseIds.includes(String(c.id))}
+                  checked={(values.courseIds || []).includes(String(c.id))}
                   onChange={onToggleCourse}
                 />
                 <span className="text-sm">{c.title}</span>

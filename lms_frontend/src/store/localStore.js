@@ -1,6 +1,6 @@
 import { courses as initialCourses, learningPath as initialLearningPath } from '../data/learningData';
 
-// Key names for localStorage
+// Key names for localStorage (stable)
 const LS_KEYS = {
   courses: 'lms.courses',
   learningPaths: 'lms.learningPaths',
@@ -8,6 +8,7 @@ const LS_KEYS = {
 
 // Simple pub/sub for store updates (within-tab) + storage event (cross-tab)
 const listeners = new Set();
+/** Notify all subscribers about a change. */
 function emitChange(type) {
   listeners.forEach((cb) => {
     try {
@@ -59,15 +60,23 @@ function getMergedCourses() {
   return fromInitial;
 }
 
-function getMergedLearningPaths() {
-  // initialData may have a single learningPath or an array; normalize to array
-  let fromInitial = [];
-  // Current dataset exports a single learningPath object; normalize to array
+function normalizeInitialLearningPathToArray() {
+  // initialData exports a single learningPath object; normalize to array
+  const arr = [];
   if (initialLearningPath) {
-    fromInitial = [initialLearningPath];
+    // The public page expects fields: { id, title, description, cover, courses: [] }
+    // Admin-managed learning paths use: { id, title, description, coverImage, courseIds: [] }
+    // For merged list we retain the initial object as-is so public page can still show it
+    arr.push(initialLearningPath);
   }
+  return arr;
+}
+
+function getMergedLearningPaths() {
+  const fromInitial = normalizeInitialLearningPathToArray();
   const overlay = readLocal(LS_KEYS.learningPaths);
   if (Array.isArray(overlay)) {
+    // Overlay replaces/augments by id
     const byId = new Map(fromInitial.map((p) => [String(p.id), p]));
     overlay.forEach((p) => {
       byId.set(String(p.id), p);
@@ -143,8 +152,17 @@ export function listLearningPaths() {
 }
 
 // PUBLIC_INTERFACE
+export function getLearningPathById(id) {
+  /** Retrieve a learning path by id from merged view. */
+  return getMergedLearningPaths().find((p) => String(p.id) === String(id));
+}
+
+// PUBLIC_INTERFACE
 export function addLearningPath(path) {
-  /** Add a new learning path. Fields: title/name, description, coverImage, courseIds[] */
+  /**
+   * Add a new learning path. Normalized schema:
+   * { id, title, description, coverImage, courseIds: string[] }
+   */
   const existing = readLocal(LS_KEYS.learningPaths) || [];
   const id = path.id ?? generateId('path');
   const normalized = {
@@ -152,7 +170,7 @@ export function addLearningPath(path) {
     title: path.title ?? path.name ?? '',
     description: path.description ?? '',
     coverImage: path.coverImage ?? path.image ?? '',
-    courseIds: Array.isArray(path.courseIds) ? path.courseIds : [],
+    courseIds: Array.isArray(path.courseIds) ? path.courseIds.map(String) : [],
   };
   writeLocal(LS_KEYS.learningPaths, [...existing, normalized]);
   emitChange('learningPaths');
@@ -174,12 +192,26 @@ export function updateLearningPath(id, patch) {
     id: target.id,
     title: patch.title ?? patch.name ?? target.title,
     coverImage: patch.coverImage ?? patch.image ?? target.coverImage,
-    courseIds: Array.isArray(patch.courseIds) ? patch.courseIds : target.courseIds,
+    courseIds: Array.isArray(patch.courseIds)
+      ? patch.courseIds.map(String)
+      : Array.isArray(target.courseIds)
+      ? target.courseIds.map(String)
+      : [],
   };
   overById.set(String(id), updated);
   writeLocal(LS_KEYS.learningPaths, Array.from(overById.values()));
   emitChange('learningPaths');
   return updated;
+}
+
+// PUBLIC_INTERFACE
+export function removeLearningPath(id) {
+  /** Remove a learning path by id from localStorage overlay. */
+  const over = readLocal(LS_KEYS.learningPaths) || [];
+  const next = over.filter((p) => String(p.id) !== String(id));
+  writeLocal(LS_KEYS.learningPaths, next);
+  emitChange('learningPaths');
+  return true;
 }
 
 // PUBLIC_INTERFACE
@@ -197,10 +229,30 @@ export function getLearningPathByIdOrDefault(id) {
 // PUBLIC_INTERFACE
 export function getAggregatedLearningPath() {
   /**
-   * Returns the default aggregated learning path (first available).
-   * This mirrors earlier usage of a single exported learningPath object.
+   * Returns the default aggregated learning path used by the public page.
+   * Priority: first admin-created learning path if present; otherwise the initial dataset.
+   * If admin paths exist, we still return the first item from the merged array.
+   * Public page expects shape of initialLearningPath (cover, courses, etc.). If an admin path
+   * exists (without courses structure), we synthesize a minimal object that renders header/cover.
    */
-  return getLearningPathByIdOrDefault(null);
+  const all = getMergedLearningPaths();
+  const first = all[0];
+  if (!first) return null;
+
+  // If it's the original seed with full courses structure, return as-is
+  if (first.courses && Array.isArray(first.courses)) {
+    return first;
+  }
+
+  // If it's an admin-created path (normalized schema), adapt minimally for display.
+  // Note: We don't have detailed lessons per course for admin-created paths in this demo.
+  return {
+    id: first.id,
+    title: first.title,
+    description: first.description,
+    cover: first.coverImage || first.cover,
+    courses: [], // minimal empty courses array so UI renders gracefully
+  };
 }
 
 // PUBLIC_INTERFACE
