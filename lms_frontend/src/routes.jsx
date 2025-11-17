@@ -11,20 +11,23 @@ import ResetPassword from './auth/pages/ResetPassword';
 import VerifyEmail from './auth/pages/VerifyEmail';
 import ProfilePage from './auth/pages/Profile';
 
-// Courses
+// Courses (existing public pages mapped to Paths/PathDetail/LearningPath)
+import Paths from './pages/Paths';
+import PathDetail from './pages/PathDetail';
+import LearningPath from './pages/LearningPath';
+
+// Course/Assignment/Quiz existing modules
 import CourseList from './courses/CourseList';
 import CourseDetail from './courses/CourseDetail';
 import CourseForm from './courses/CourseForm';
 import CreateCourse from './courses/CreateCourse';
 import AddVideo from './courses/AddVideo';
 
-// Assignments
 import AssignmentList from './assignments/AssignmentList';
 import AssignmentDetail from './assignments/AssignmentDetail';
 import AssignmentCreate from './assignments/AssignmentCreate';
 import SubmissionList from './assignments/SubmissionList';
 
-// Quizzes
 import QuizList from './quizzes/QuizList';
 import QuizCreate from './quizzes/QuizCreate';
 import QuizDetail from './quizzes/QuizDetail';
@@ -32,12 +35,14 @@ import QuizTake from './quizzes/QuizTake';
 
 // Dashboards
 import AdminDashboard from './dashboards/AdminDashboard';
-
 import StudentDashboard from './dashboards/StudentDashboard';
 
-import Paths from './pages/Paths';
-import PathDetail from './pages/PathDetail';
-import LearningPath from './pages/LearningPath';
+// Admin (new client-side demo-only)
+import AdminHome from './admin/AdminHome';
+import CoursesAdminList from './admin/CoursesAdminList';
+import CourseFormPage from './admin/CourseFormPage';
+import LearningPathsAdminList from './admin/LearningPathsAdminList';
+import LearningPathFormPage from './admin/LearningPathFormPage';
 
 // PUBLIC_INTERFACE
 export function HomePage() {
@@ -51,7 +56,6 @@ export function HomePage() {
       {notice ? (
         <p style={{ marginTop: 12, color: 'var(--color-muted)' }}>{notice}</p>
       ) : null}
-      {/* Secondary navigation removed per UI cleanup requirements */}
       <div style={{ marginTop: 16 }}>
         <Link to="/courses" className="nav-link text-blue-600 hover:underline">
           Browse Courses
@@ -66,7 +70,6 @@ function RoleDashboardRouter() {
   /**
    * Routes authenticated users hitting /dashboard to their role-specific dashboard:
    * - admin -> /dashboard/admin
-   * - instructor -> /dashboard/instructor
    * - student (default) -> /dashboard/student
    */
   const { role } = useAuth();
@@ -91,17 +94,12 @@ export default function ApplicationRoutes() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
 
-      {/* Courses (public) */}
-      <Route path="/courses" element={<Paths />} />
-      <Route path="/courses/:id" element={<PathDetail />} />
-      {/* Redirects from old paths */}
-      <Route path="/paths" element={<Navigate to="/courses" replace />} />
-      <Route path="/paths/:pathId" element={<Navigate to="/courses/:pathId" replace />} />
-
-      {/* Public course/quiz views (backend-driven full courses) */}
+      {/* Existing public pages mapped to design */}
       <Route path="/courses" element={<Paths />} />
       <Route path="/courses/:id" element={<PathDetail />} />
       <Route path="/learning-path" element={<LearningPath />} />
+
+      {/* Existing quizzes and assignments public views */}
       <Route path="/quizzes" element={<QuizList />} />
       <Route path="/quizzes/:id" element={<QuizDetail />} />
       <Route path="/quizzes/:id/take" element={<QuizTake />} />
@@ -116,13 +114,13 @@ export default function ApplicationRoutes() {
         {/* Role-based dashboard landing */}
         <Route path="/dashboard" element={<RoleDashboardRouter />} />
 
-        {/* Admin */}
+        {/* Admin-only protected dashboard and admin-dashboard (existing) */}
         <Route element={<RoleRoute allowedRoles={['admin']} />}>
           <Route path="/dashboard/admin" element={<AdminDashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
         </Route>
 
-        {/* Student */}
+        {/* Student-only */}
         <Route element={<RoleRoute allowedRoles={['student']} />}>
           <Route path="/dashboard/student" element={<StudentDashboard />} />
           <Route path="/assignments" element={<AssignmentList />} />
@@ -131,7 +129,7 @@ export default function ApplicationRoutes() {
         {/* Shared protected */}
         <Route path="/profile" element={<ProfilePage />} />
 
-        {/* Admin management only */}
+        {/* Existing admin management routes (original) */}
         <Route element={<RoleRoute allowedRoles={['admin']} />}>
           <Route path="/courses/new" element={<CourseForm />} />
           <Route path="/courses/create" element={<CreateCourse />} />
@@ -140,8 +138,18 @@ export default function ApplicationRoutes() {
           <Route path="/assignments/:id/submissions" element={<SubmissionList />} />
           <Route path="/quizzes/new" element={<QuizCreate />} />
           <Route path="/courses/:courseId/quizzes/new" element={<QuizCreate />} />
-          {/* Add Video flow for newly created course */}
           <Route path="/admin/courses/:courseId/add-video" element={<AddVideo />} />
+        </Route>
+
+        {/* NEW: Demo-only Admin client-side routes (no auth backend, still role-gated) */}
+        <Route element={<RoleRoute allowedRoles={['admin']} />}>
+          <Route path="/admin" element={<AdminHome />} />
+          <Route path="/admin/courses" element={<CoursesAdminList />} />
+          <Route path="/admin/courses/new" element={<CourseFormPage />} />
+          <Route path="/admin/courses/:id/edit" element={<CourseFormPage />} />
+          <Route path="/admin/learning-paths" element={<LearningPathsAdminList />} />
+          <Route path="/admin/learning-paths/new" element={<LearningPathFormPage />} />
+          <Route path="/admin/learning-paths/:id/edit" element={<LearningPathFormPage />} />
         </Route>
       </Route>
 
