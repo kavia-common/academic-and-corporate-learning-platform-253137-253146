@@ -42,7 +42,17 @@ export default function Sidebar({ onNavigate }) {
             </li>
             {r === 'admin' && (
               <li>
-                <NavLink to="/admin" onClick={onNavigate} className={linkClass} end>
+                {/* PUBLIC_INTERFACE
+                  Admin navigation item - visible only to admin role.
+                  Links to '/admin' which is protected in routes and maps to the AdminDashboard.
+                  Active state is handled by NavLink isActive styles via linkClass.
+                */}
+                <NavLink
+                  to="/admin"
+                  onClick={onNavigate}
+                  className={linkClass}
+                  end
+                >
                   <span aria-hidden>🛠️</span>
                   <span>Admin</span>
                 </NavLink>
