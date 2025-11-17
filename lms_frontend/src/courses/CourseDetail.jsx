@@ -4,7 +4,6 @@ import { enrollInCourse, fetchCourseById as getCourseById, listCourseVideos, add
 import { useAuth } from '../auth/AuthProvider';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { convertDriveLink, toEmbedUrl, isGoogleDriveUrl } from '../utils/videoUrl';
 
 /**
  * PUBLIC_INTERFACE
@@ -155,22 +154,10 @@ export default function CourseDetail() {
                     }
                     try {
                       setAddingVideo(true);
-                      // Normalize Google Drive URLs before saving; keep others unchanged
-                      // Supported patterns: /file/d/ID/view, /open?id=ID, /uc?id=ID
-                      let urlToSave = url;
-                      if (isGoogleDriveUrl(url)) {
-                        const normalized = convertDriveLink(url);
-                        const unchanged = normalized === url;
-                        const looksPreview = /https:\/\/drive\.google\.com\/file\/d\/[^/]+\/preview/i.test(normalized);
-                        if (unchanged || !looksPreview) {
-                          throw new Error('That Google Drive link is not recognized. Please ensure it looks like https://drive.google.com/file/d/FILE_ID/view');
-                        }
-                        urlToSave = normalized;
-                      }
                       const res = await addCourseVideo({
                         course_id: id,
                         title: String(newVideoTitle || '').trim() || null,
-                        url: urlToSave,
+                        url,
                         created_by: user?.id || null,
                       });
                       if (!res?.ok) throw new Error(res?.error?.message || 'Failed to add video');
@@ -208,7 +195,6 @@ export default function CourseDetail() {
                       type="url"
                       inputMode="url"
                       required
-                      description="Google Drive links will auto-convert to preview for embedding."
                     />
                   </div>
                   <div className="flex gap-2">
@@ -279,4 +265,17 @@ function VideoPreview({ url }) {
   );
 }
 
-
+function toEmbedUrl(url) {
+  if (typeof url !== 'string') return null;
+  try {
+    const u = new URL(url);
+    const host = u.hostname || '';
+    if (host.includes('drive.google.com')) {
+      const newPath = u.pathname.replace(/\/view(?:$|[/?#])/, '/preview$1');
+      return `${u.protocol}//${u.host}${newPath}${u.search}`;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
