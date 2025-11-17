@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createCourse as createCourseService } from '../supabase';
+import { createCourse as createCourseService } from '../supabase/supabaseCourses';
 import { useAuth } from '../auth/AuthProvider';
 import { Card, CardBody, CardFooter, CardHeader } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
@@ -74,13 +74,20 @@ export default function CreateCourse() {
       };
 
       const created = await createCourseService(payload);
+      if (!created?.ok) {
+        throw new Error(created?.error?.message || 'Failed to create course.');
+      }
       setSuccessMsg('Course created successfully!');
       // Navigate directly to the course detail page; no separate Add Video step
       setTimeout(() => {
-        navigate(`/courses/${created.id}`, { replace: true });
+        navigate(`/courses/${created.data.id}`, { replace: true });
       }, 250);
     } catch (e2) {
-      setErr(e2?.message || 'Failed to create course.');
+      const message =
+        e2?.message ||
+        (typeof e2 === 'string' ? e2 : null) ||
+        'Failed to create course.';
+      setErr(message);
     } finally {
       setSaving(false);
     }
