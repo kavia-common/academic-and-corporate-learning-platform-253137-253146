@@ -23,7 +23,7 @@ export default function CourseForm() {
   const isAuthed = status === 'authenticated';
   const r = String(role || '').toLowerCase();
 
-  const [form, setForm] = useState({ title: '', description: '' });
+  const [form, setForm] = useState({ title: '', description: '', video_url: '' });
   const [loading, setLoading] = useState(editing);
   const [err, setErr] = useState('');
   const [saving, setSaving] = useState(false);
@@ -43,7 +43,7 @@ export default function CourseForm() {
             navigate('/courses', { replace: true, state: { notice: 'You do not have permission to edit this course.' } });
             return;
           }
-          setForm({ title: data.title || '', description: data.description || '' });
+          setForm({ title: data.title || '', description: data.description || '', video_url: data.video_url || '' });
         } catch (e) {
           if (!mounted) return;
           setErr(e?.message || 'Failed to load course.');
@@ -82,10 +82,10 @@ export default function CourseForm() {
       setSaving(true);
       setErr('');
       if (editing) {
-        await updateCourse(id, { title, description: form.description });
+        await updateCourse(id, { title, description: form.description, video_url: form.video_url || null });
         navigate(`/courses/${id}`, { replace: true });
       } else {
-        const created = await createCourse({ title, description: form.description, instructor_id: user?.id });
+        const created = await createCourse({ title, description: form.description, video_url: form.video_url || null, instructor_id: user?.id });
         navigate(`/courses/${created.id}`, { replace: true });
       }
     } catch (e2) {
@@ -140,6 +140,16 @@ export default function CourseForm() {
                   placeholder="Describe the course overview and objectives"
                 />
               </div>
+
+              <Input
+                label="Intro/Promo video URL (optional)"
+                name="video_url"
+                type="url"
+                value={form.video_url}
+                onChange={onChange}
+                placeholder="https://example.com/video.mp4 or https://youtu.be/..."
+                inputMode="url"
+              />
 
               <div className="flex gap-2">
                 <Button type="submit" disabled={saving}>

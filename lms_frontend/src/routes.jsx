@@ -15,6 +15,7 @@ import ProfilePage from './auth/pages/Profile';
 import CourseList from './courses/CourseList';
 import CourseDetail from './courses/CourseDetail';
 import CourseForm from './courses/CourseForm';
+import CreateCourse from './courses/CreateCourse';
 
 // Assignments
 import AssignmentList from './assignments/AssignmentList';
@@ -128,6 +129,7 @@ export default function ApplicationRoutes() {
         {/* Instructor/admin management */}
         <Route element={<RoleRoute allowedRoles={['instructor', 'admin']} />}>
           <Route path="/courses/new" element={<CourseForm />} />
+          <Route path="/courses/create" element={<CreateCourse />} />
           <Route path="/courses/:id/edit" element={<CourseForm />} />
           <Route path="/courses/:courseId/assignments/new" element={<AssignmentCreate />} />
           <Route path="/assignments/:id/submissions" element={<SubmissionList />} />

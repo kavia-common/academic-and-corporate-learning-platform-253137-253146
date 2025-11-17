@@ -47,12 +47,21 @@ export async function fetchCourseById(id) {
 // PUBLIC_INTERFACE
 /** Create a new course. */
 export async function createCourse(course) {
-  const required = { title: 'string', description: 'string', instructor_id: 'string' };
+  // Validate required fields only: title, instructor_id
+  const required = { title: 'string', instructor_id: 'string' };
   const valid = validatePayload(required, course || {});
   if (!valid.ok) return valid;
 
+  // Normalize optional fields
+  const payload = {
+    title: course.title,
+    instructor_id: course.instructor_id,
+    description: typeof course.description === 'string' ? course.description : null,
+    video_url: course.video_url ? String(course.video_url) : null,
+  };
+
   return safeExec(async () => {
-    const { data, error } = await supabase.from('courses').insert(course).select().single();
+    const { data, error } = await supabase.from('courses').insert(payload).select().single();
     return { data, error };
   }, 'COURSE_CREATE_FAILED', 400);
 }
