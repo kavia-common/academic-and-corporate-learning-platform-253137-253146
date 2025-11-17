@@ -30,7 +30,8 @@ export default function LearningPath() {
 
   const player = useMemo(() => {
     if (!activeLesson) return null;
-    const url = activeLesson.video_url;
+    // Use the exact provided video_url with no transformation or fallback.
+    const url = activeLesson?.video_url || '';
     return (
       <div className="ocean-video">
         <video

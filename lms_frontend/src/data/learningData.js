@@ -67,63 +67,189 @@
        key: 'course_react',
        title: 'React',
        lessons: [
-         { course_id: 'course_react', title: 'Introduction to React', thumbnail: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8', duration: '45 min', video_url: '' },
-         { course_id: 'course_react', title: 'React Hooks Deep Dive', thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '60 min', video_url: '' },
-         { course_id: 'course_react', title: 'Advanced React Patterns', thumbnail: 'https://images.unsplash.com/photo-1526378722484-bd91ca387e72?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '75 min', video_url: '' }
+         {
+           course_id: 'course_react',
+           title: 'Introduction to React',
+           thumbnail: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8',
+           duration: '45 min',
+           video_url: 'https://example.com/videos/react-intro.mp4'
+         },
+         {
+           course_id: 'course_react',
+           title: 'React Hooks Deep Dive',
+           thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '60 min',
+           video_url: 'https://example.com/videos/react-hooks.mp4'
+         },
+         {
+           course_id: 'course_react',
+           title: 'Advanced React Patterns',
+           thumbnail: 'https://images.unsplash.com/photo-1526378722484-bd91ca387e72?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '75 min',
+           video_url: 'https://example.com/videos/react-advanced-patterns.mp4'
+         }
        ],
      },
      {
        key: 'course_js',
        title: 'JavaScript',
        lessons: [
-         { course_id: 'course_js', title: 'JavaScript Fundamentals', thumbnail: 'https://images.unsplash.com/photo-1517433456452-f9633a875f6f?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '40 min', video_url: '' },
-         { course_id: 'course_js', title: 'Async JavaScript', thumbnail: 'https://images.unsplash.com/photo-1518779578993-ec3579fee39f?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '55 min', video_url: '' },
-         { course_id: 'course_js', title: 'ES6+ Features', thumbnail: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '50 min', video_url: '' }
+         {
+           course_id: 'course_js',
+           title: 'JavaScript Fundamentals',
+           thumbnail: 'https://images.unsplash.com/photo-1517433456452-f9633a875f6f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '40 min',
+           video_url: 'https://example.com/videos/js-fundamentals.mp4'
+         },
+         {
+           course_id: 'course_js',
+           title: 'Async JavaScript',
+           thumbnail: 'https://images.unsplash.com/photo-1518779578993-ec3579fee39f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '55 min',
+           video_url: 'https://example.com/videos/js-async.mp4'
+         },
+         {
+           course_id: 'course_js',
+           title: 'ES6+ Features',
+           thumbnail: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '50 min',
+           video_url: 'https://example.com/videos/js-es6.mp4'
+         }
        ],
      },
      {
        key: 'course_html',
        title: 'HTML',
        lessons: [
-         { course_id: 'course_html', title: 'HTML Basics', thumbnail: 'https://images.unsplash.com/photo-1554224155-3a589877462e?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '35 min', video_url: '' },
-         { course_id: 'course_html', title: 'Semantic HTML', thumbnail: 'https://images.unsplash.com/photo-1520975916090-3105956dac38?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '45 min', video_url: '' },
-         { course_id: 'course_html', title: 'Forms and Validation', thumbnail: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '50 min', video_url: '' }
+         {
+           course_id: 'course_html',
+           title: 'HTML Basics',
+           thumbnail: 'https://images.unsplash.com/photo-1554224155-3a589877462e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '35 min',
+           video_url: 'https://example.com/videos/html-basics.mp4'
+         },
+         {
+           course_id: 'course_html',
+           title: 'Semantic HTML',
+           thumbnail: 'https://images.unsplash.com/photo-1520975916090-3105956dac38?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '45 min',
+           video_url: 'https://example.com/videos/html-semantic.mp4'
+         },
+         {
+           course_id: 'course_html',
+           title: 'Forms and Validation',
+           thumbnail: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '50 min',
+           video_url: 'https://example.com/videos/html-forms.mp4'
+         }
        ],
      },
      {
        key: 'course_css',
        title: 'CSS',
        lessons: [
-         { course_id: 'course_css', title: 'CSS Fundamentals', thumbnail: 'https://images.unsplash.com/photo-1520975916090-3105956dac38?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '40 min', video_url: '' },
-         { course_id: 'course_css', title: 'Flexbox & Grid', thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '55 min', video_url: '' },
-         { course_id: 'course_css', title: 'Advanced CSS Techniques', thumbnail: 'https://images.unsplash.com/photo-1512295767273-ac109ac3acfa?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '65 min', video_url: '' }
+         {
+           course_id: 'course_css',
+           title: 'CSS Fundamentals',
+           thumbnail: 'https://images.unsplash.com/photo-1520975916090-3105956dac38?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '40 min',
+           video_url: 'https://example.com/videos/css-fundamentals.mp4'
+         },
+         {
+           course_id: 'course_css',
+           title: 'Flexbox & Grid',
+           thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '55 min',
+           video_url: 'https://example.com/videos/css-flexbox-grid.mp4'
+         },
+         {
+           course_id: 'course_css',
+           title: 'Advanced CSS Techniques',
+           thumbnail: 'https://images.unsplash.com/photo-1512295767273-ac109ac3acfa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '65 min',
+           video_url: 'https://example.com/videos/css-advanced.mp4'
+         }
        ],
      },
      {
        key: 'course_python',
        title: 'Python',
        lessons: [
-         { course_id: 'course_python', title: 'Python Basics', thumbnail: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '45 min', video_url: '' },
-         { course_id: 'course_python', title: 'Object-Oriented Python', thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '60 min', video_url: '' },
-         { course_id: 'course_python', title: 'Python for Data Science', thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '70 min', video_url: '' }
+         {
+           course_id: 'course_python',
+           title: 'Python Basics',
+           thumbnail: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '45 min',
+           video_url: 'https://example.com/videos/python-basics.mp4'
+         },
+         {
+           course_id: 'course_python',
+           title: 'Object-Oriented Python',
+           thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '60 min',
+           video_url: 'https://example.com/videos/python-oop.mp4'
+         },
+         {
+           course_id: 'course_python',
+           title: 'Python for Data Science',
+           thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '70 min',
+           video_url: 'https://example.com/videos/python-data-science.mp4'
+         }
        ],
      },
      {
        key: 'course_django',
        title: 'Django',
        lessons: [
-         { course_id: 'course_django', title: 'Getting Started with Django', thumbnail: 'https://images.unsplash.com/photo-1530825894095-9c184b068fcb?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '50 min', video_url: '' },
-         { course_id: 'course_django', title: 'Django ORM & Models', thumbnail: 'https://images.unsplash.com/photo-1526378722484-bd91ca387e72?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '60 min', video_url: '' },
-         { course_id: 'course_django', title: 'Django REST Framework', thumbnail: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '70 min', video_url: '' }
+         {
+           course_id: 'course_django',
+           title: 'Getting Started with Django',
+           thumbnail: 'https://images.unsplash.com/photo-1530825894095-9c184b068fcb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '50 min',
+           video_url: 'https://example.com/videos/django-getting-started.mp4'
+         },
+         {
+           course_id: 'course_django',
+           title: 'Django ORM & Models',
+           thumbnail: 'https://images.unsplash.com/photo-1526378722484-bd91ca387e72?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '60 min',
+           video_url: 'https://example.com/videos/django-orm-models.mp4'
+         },
+         {
+           course_id: 'course_django',
+           title: 'Django REST Framework',
+           thumbnail: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '70 min',
+           video_url: 'https://example.com/videos/django-rest-framework.mp4'
+         }
        ],
      },
      {
        key: 'course_sql',
        title: 'SQL',
        lessons: [
-         { course_id: 'course_sql', title: 'SQL Basics', thumbnail: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '40 min', video_url: '' },
-         { course_id: 'course_sql', title: 'Joins & Subqueries', thumbnail: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '55 min', video_url: '' },
-         { course_id: 'course_sql', title: 'Indexes & Optimization', thumbnail: 'https://images.unsplash.com/photo-1529101091764-c3526daf38fe?ixlib=rb-4.0.3&q=80&auto=format&fit=crop&w=1170', duration: '60 min', video_url: '' }
+         {
+           course_id: 'course_sql',
+           title: 'SQL Basics',
+           thumbnail: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '40 min',
+           video_url: 'https://example.com/videos/sql-basics.mp4'
+         },
+         {
+           course_id: 'course_sql',
+           title: 'Joins & Subqueries',
+           thumbnail: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '55 min',
+           video_url: 'https://example.com/videos/sql-joins-subqueries.mp4'
+         },
+         {
+           course_id: 'course_sql',
+           title: 'Indexes & Optimization',
+           thumbnail: 'https://images.unsplash.com/photo-1529101091764-c3526daf38fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80',
+           duration: '60 min',
+           video_url: 'https://example.com/videos/sql-indexes-optimization.mp4'
+         }
        ],
      },
    ],
