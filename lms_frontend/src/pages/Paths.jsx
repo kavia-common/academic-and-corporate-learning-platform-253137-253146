@@ -21,7 +21,7 @@ export default function Paths() {
   return (
     <div className="p-4 md:p-6">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-semibold text-gray-800">Courses</h1>
+        <h1 className="text-2xl font-semibold text-gray-800">Learning Paths</h1>
         <Link to="/" className="nav-link text-blue-600 hover:underline">
           Home
         </Link>
@@ -45,9 +45,9 @@ export default function Paths() {
                 <Link
                   to={`/courses/${encodeURIComponent(item.id)}`}
                   className="btn inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-                  aria-label={`View course ${item.title}`}
+                  aria-label={`View learning path ${item.title}`}
                 >
-                  View Course
+                  View Learning Path
                 </Link>
               </div>
             </div>
@@ -55,7 +55,7 @@ export default function Paths() {
         ))}
         {items.length === 0 && (
           <div className="card p-4 bg-white">
-            <p className="text-gray-600">No courses available.</p>
+            <p className="text-gray-600">No learning paths available.</p>
           </div>
         )}
       </div>

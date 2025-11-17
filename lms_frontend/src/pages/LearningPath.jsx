@@ -56,7 +56,7 @@ export default function LearningPath() {
       <div className="ocean-container">
         <div className="card ocean-card">
           <div className="ocean-card__body">
-            <h2 className="ocean-title text-lg">Learning Path</h2>
+            <h2 className="ocean-title text-lg">Course</h2>
             <p className="ocean-muted mt-2">Not available.</p>
           </div>
         </div>
@@ -70,7 +70,7 @@ export default function LearningPath() {
     <div className="ocean-bg">
       <header className="ocean-header ocean-container" role="banner">
         <div className="ocean-ribbon" aria-hidden="true"></div>
-        <h1 className="ocean-title"> {path.title || 'Learning Path'} </h1>
+        <h1 className="ocean-title"> {path.title || 'Course'} </h1>
         {path.description && (
           <p className="ocean-muted">{path.description}</p>
         )}

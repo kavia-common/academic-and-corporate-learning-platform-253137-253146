@@ -36,14 +36,14 @@ export default function LearningPathsAdminList() {
   return (
     <div className="ocean-container">
       <div className="flex items-start justify-between">
-        <h1 className="text-2xl font-semibold">Learning Paths</h1>
+        <h1 className="text-2xl font-semibold">Courses</h1>
         <span className="text-sm text-red-600">
           Demo-only admin (client-side). For production, wire to backend with auth.
         </span>
       </div>
       <div className="mt-4 flex items-center gap-3">
-        <Link to="/admin/learning-paths/new" className="ocean-button btn">New Learning Path</Link>
-        <Link to="/learning-path" className="nav-link text-blue-600 hover:underline">View Public Page</Link>
+        <Link to="/admin/learning-paths/new" className="ocean-button btn">New Course</Link>
+        <Link to="/learning-path" className="nav-link text-blue-600 hover:underline">View Public Course Page</Link>
       </div>
       <div className="ocean-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
         {paths.map((p) => (

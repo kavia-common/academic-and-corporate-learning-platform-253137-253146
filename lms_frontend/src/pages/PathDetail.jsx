@@ -26,13 +26,13 @@ export default function PathDetail() {
     return (
       <div className="p-6">
         <div className="card p-4 bg-white">
-          <h2 className="text-xl font-semibold text-gray-800">Course not found</h2>
+          <h2 className="text-xl font-semibold text-gray-800">Learning Path not found</h2>
           <p className="text-gray-600 mt-2">
-            The course you are looking for does not exist.
+            The learning path you are looking for does not exist.
           </p>
           <div className="mt-4">
             <Link to="/courses" className="nav-link text-blue-600 hover:underline">
-              Back to Courses
+              Back to Learning Paths
             </Link>
           </div>
         </div>
@@ -48,7 +48,7 @@ export default function PathDetail() {
           <p className="text-gray-600">{course.description}</p>
         </div>
         <Link to="/courses" className="nav-link text-blue-600 hover:underline">
-          All Courses
+          All Learning Paths
         </Link>
       </div>
 

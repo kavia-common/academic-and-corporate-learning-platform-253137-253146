@@ -61,7 +61,7 @@ export default function CourseFormPage() {
   return (
     <div className="ocean-container">
       <div className="flex items-start justify-between">
-        <h1 className="text-2xl font-semibold">{isEdit ? 'Edit Course' : 'New Course'}</h1>
+        <h1 className="text-2xl font-semibold">{isEdit ? 'Edit Learning Path' : 'New Learning Path'}</h1>
         <span className="text-sm text-red-600">
           Demo-only admin (client-side). For production, wire to backend with auth.
         </span>
@@ -77,7 +77,7 @@ export default function CourseFormPage() {
             aria-invalid={Boolean(errors.title)}
             value={values.title}
             onChange={onChange}
-            placeholder="Enter course title"
+            placeholder="Enter learning path title"
           />
           {errors.title && <p className="text-sm text-red-600 mt-1">{errors.title}</p>}
         </div>
@@ -137,7 +137,7 @@ export default function CourseFormPage() {
         </div>
 
         <div className="pt-2">
-          <button type="submit" className="ocean-button btn">{isEdit ? 'Save Changes' : 'Create Course'}</button>
+          <button type="submit" className="ocean-button btn">{isEdit ? 'Save Changes' : 'Create Learning Path'}</button>
         </div>
       </form>
     </div>

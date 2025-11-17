@@ -95,9 +95,15 @@ export default function ApplicationRoutes() {
       <Route path="/verify-email" element={<VerifyEmail />} />
 
       {/* Existing public pages mapped to design */}
+      {/* Courses now displayed as Learning Paths (labels); keep routes */}
       <Route path="/courses" element={<Paths />} />
       <Route path="/courses/:id" element={<PathDetail />} />
+      {/* Aliases: /learning-paths -> /courses, /learning-paths/:id -> /courses/:id */}
+      <Route path="/learning-paths" element={<Paths />} />
+      <Route path="/learning-paths/:id" element={<PathDetail />} />
+      {/* Public Learning Path page displays as Course; keep route with alias */}
       <Route path="/learning-path" element={<LearningPath />} />
+      <Route path="/course" element={<LearningPath />} />
 
       {/* Existing quizzes and assignments public views */}
       <Route path="/quizzes" element={<QuizList />} />

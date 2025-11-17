@@ -8,13 +8,13 @@ export default function CoursesAdminList() {
   return (
     <div className="ocean-container">
       <div className="flex items-start justify-between">
-        <h1 className="text-2xl font-semibold">Courses</h1>
+        <h1 className="text-2xl font-semibold">Learning Paths</h1>
         <span className="text-sm text-red-600">
           Demo-only admin (client-side). For production, wire to backend with auth.
         </span>
       </div>
       <div className="mt-4">
-        <Link to="/admin/courses/new" className="ocean-button btn">New Course</Link>
+        <Link to="/admin/courses/new" className="ocean-button btn">New Learning Path</Link>
       </div>
       <div className="ocean-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
         {courses.map((c) => (
@@ -39,7 +39,7 @@ export default function CoursesAdminList() {
         ))}
         {courses.length === 0 && (
           <div className="ocean-card p-4">
-            <p className="text-gray-600">No courses yet. Create the first one.</p>
+            <p className="text-gray-600">No learning paths yet. Create the first one.</p>
           </div>
         )}
       </div>

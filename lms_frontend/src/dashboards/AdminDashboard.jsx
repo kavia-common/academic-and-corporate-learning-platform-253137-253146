@@ -239,7 +239,7 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Admin</h1>
-          <p className="text-gray-600 mt-1">Manage courses and assignments</p>
+          <p className="text-gray-600 mt-1">Manage learning paths (public) and assignments</p>
         </div>
         <div className="text-sm text-gray-500">
           {user?.email ? `Signed in as ${user.email}` : ''}
