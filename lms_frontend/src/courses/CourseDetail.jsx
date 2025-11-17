@@ -30,7 +30,10 @@ export default function CourseDetail() {
         setErr('');
         const cRes = await getCourseById(id);
         if (!mounted) return;
-        setCourse(cRes);
+        if (!cRes?.ok) {
+          throw new Error(cRes?.error?.message || 'Failed to load course.');
+        }
+        setCourse(cRes.data);
         // fetch course videos (ignore errors silently but show none)
         try {
           const vRes = await listCourseVideos(id);
@@ -112,12 +115,7 @@ export default function CourseDetail() {
           {/* Course videos */}
           <div className="card" style={{ padding: 12 }}>
             <h2 className="text-xl" style={{ margin: 0 }}>Videos</h2>
-            {(!videos || videos.length === 0) && (
-              <p className="text-sm" style={{ color: 'var(--color-text-muted)', marginTop: 8 }}>
-                No videos available.
-              </p>
-            )}
-            {Array.isArray(videos) && videos.length > 0 && (
+            {Array.isArray(videos) && videos.length > 0 ? (
               <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
                 {videos.map((v) => (
                   <div key={v.id} className="card" style={{ padding: 12 }}>
@@ -131,6 +129,10 @@ export default function CourseDetail() {
                   </div>
                 ))}
               </div>
+            ) : (
+              <p className="text-sm" style={{ color: 'var(--color-text-muted)', marginTop: 8 }}>
+                No videos available.
+              </p>
             )}
           </div>
         </div>
