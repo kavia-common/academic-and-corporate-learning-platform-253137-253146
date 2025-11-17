@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { enrollInCourse, fetchCourseById as getCourseById, listCourseVideos } from '../supabase';
+import { enrollInCourse, fetchCourseById as getCourseById, listCourseVideos, addCourseVideo } from '../supabase';
 import { useAuth } from '../auth/AuthProvider';
+import { Input } from '../components/ui/Input';
+import { Button } from '../components/ui/Button';
 
 /**
  * PUBLIC_INTERFACE
@@ -18,6 +20,12 @@ export default function CourseDetail() {
   const [err, setErr] = useState('');
   const [enrolling, setEnrolling] = useState(false);
   const [enrolledMsg, setEnrolledMsg] = useState('');
+
+  // Inline add-video state (shown when no videos)
+  const [newVideoUrl, setNewVideoUrl] = useState('');
+  const [newVideoTitle, setNewVideoTitle] = useState('');
+  const [addingVideo, setAddingVideo] = useState(false);
+  const [videoFeedback, setVideoFeedback] = useState('');
 
   const isAuthed = status === 'authenticated';
   const r = String(role || '').toLowerCase();
@@ -130,9 +138,96 @@ export default function CourseDetail() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm" style={{ color: 'var(--color-text-muted)', marginTop: 8 }}>
-                No videos available.
-              </p>
+              <div style={{ marginTop: 12 }}>
+                <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                  Paste a video URL to add the first video to this course.
+                </p>
+
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setVideoFeedback('');
+                    const url = String(newVideoUrl || '').trim();
+                    if (!url) {
+                      setVideoFeedback('Video URL is required.');
+                      return;
+                    }
+                    try {
+                      setAddingVideo(true);
+                      const res = await addCourseVideo({
+                        course_id: id,
+                        title: String(newVideoTitle || '').trim() || null,
+                        url,
+                        created_by: user?.id || null,
+                      });
+                      if (!res?.ok) throw new Error(res?.error?.message || 'Failed to add video');
+
+                      const vRes = await listCourseVideos(id);
+                      if (!vRes?.ok) throw new Error(vRes?.error?.message || 'Failed to refresh videos');
+                      setVideos(Array.isArray(vRes.data) ? vRes.data : []);
+                      setNewVideoUrl('');
+                      setNewVideoTitle('');
+                      setVideoFeedback('Video added successfully.');
+                    } catch (eAdd) {
+                      setVideoFeedback(eAdd?.message || 'Failed to add video.');
+                    } finally {
+                      setAddingVideo(false);
+                    }
+                  }}
+                  className="space-y-3"
+                  noValidate
+                >
+                  <div className="grid gap-2">
+                    <Input
+                      label="Title (optional)"
+                      name="video_title"
+                      value={newVideoTitle}
+                      onChange={(e) => setNewVideoTitle(e.target.value)}
+                      placeholder="Intro, Lesson 1, etc."
+                      type="text"
+                    />
+                    <Input
+                      label="Video URL"
+                      name="video_url"
+                      value={newVideoUrl}
+                      onChange={(e) => setNewVideoUrl(e.target.value)}
+                      placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
+                      type="url"
+                      inputMode="url"
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button type="submit" loading={addingVideo} disabled={addingVideo}>
+                      {addingVideo ? 'Adding…' : 'Add video'}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => {
+                        setNewVideoUrl('');
+                        setNewVideoTitle('');
+                        setVideoFeedback('');
+                      }}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                  {videoFeedback && (
+                    <div
+                      className="rounded-md border p-2 text-sm"
+                      style={{
+                        borderColor: videoFeedback.toLowerCase().includes('success') ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)',
+                        background: videoFeedback.toLowerCase().includes('success') ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
+                        color: videoFeedback.toLowerCase().includes('success') ? '#166534' : '#991b1b',
+                      }}
+                      role="status"
+                    >
+                      {videoFeedback}
+                    </div>
+                  )}
+                </form>
+              </div>
             )}
           </div>
         </div>
