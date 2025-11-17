@@ -94,7 +94,8 @@ export default function Sidebar({ onNavigate }) {
               <li>
                 {/* PUBLIC_INTERFACE
                   Admin navigation item - visible only to admin role.
-                  Positioned directly below the Profile item per requirement.
+                  LOCKED PLACEMENT: Do not move this item elsewhere. It must remain
+                  immediately after the Profile item to satisfy UI requirements.
                   Active state is handled by NavLink via linkClass.
                 */}
                 <NavLink
