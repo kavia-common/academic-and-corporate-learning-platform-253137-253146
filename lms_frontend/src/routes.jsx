@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import ProtectedRoute from './auth/ProtectedRoute';
 import RoleRoute from './auth/RoleRoute';
 import { useAuth } from './auth/AuthProvider';
@@ -19,6 +19,9 @@ import QuizCreate from './quizzes/QuizCreate';
 import QuizDetail from './quizzes/QuizDetail';
 import QuizTake from './quizzes/QuizTake';
 import ProfilePage from './auth/pages/Profile';
+import AdminDashboard from './dashboards/AdminDashboard';
+import InstructorDashboard from './dashboards/InstructorDashboard';
+import StudentDashboard from './dashboards/StudentDashboard';
 
 // PUBLIC_INTERFACE
 export function HomePage() {
@@ -45,33 +48,19 @@ export function HomePage() {
   );
 }
 
-function DashboardPage() {
-  const { user, role } = useAuth();
-  return (
-    <div style={{ padding: 24 }}>
-      <h1 className="text-2xl font-semibold">Dashboard</h1>
-      <p style={{ marginTop: 12 }}>Welcome back, {user?.email || 'User'}!</p>
-      <p style={{ marginTop: 4 }}>Your role: {role}</p>
-    </div>
-  );
-}
-
-function AdminPage() {
-  return (
-    <div style={{ padding: 24 }}>
-      <h1 className="text-2xl font-semibold">Admin</h1>
-      <p style={{ marginTop: 12 }}>Administrative controls and reports.</p>
-    </div>
-  );
-}
-
-function InstructorPage() {
-  return (
-    <div style={{ padding: 24 }}>
-      <h1 className="text-2xl font-semibold">Instructor</h1>
-      <p style={{ marginTop: 12 }}>Manage courses, assignments, and grades.</p>
-    </div>
-  );
+// PUBLIC_INTERFACE
+function RoleDashboardRouter() {
+  /**
+   * Routes authenticated users hitting /dashboard to their role-specific dashboard:
+   * - admin -> /dashboard/admin
+   * - instructor -> /dashboard/instructor
+   * - student (default) -> /dashboard/student
+   */
+  const { role } = useAuth();
+  const r = String(role || '').toLowerCase();
+  if (r === 'admin') return <Navigate to="/dashboard/admin" replace />;
+  if (r === 'instructor') return <Navigate to="/dashboard/instructor" replace />;
+  return <Navigate to="/dashboard/student" replace />;
 }
 
 /**
@@ -108,19 +97,32 @@ export default function ApplicationRoutes() {
 
       {/* Protected user routes */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        {/* Role-based dashboard landing */}
+        <Route path="/dashboard" element={<RoleDashboardRouter />} />
 
-        {/* Admin-only section */}
+        {/* Explicit dashboards by role */}
         <Route element={<RoleRoute allowedRoles={['admin']} />}>
-          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/dashboard/admin" element={<AdminDashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
         </Route>
 
+        <Route element={<RoleRoute allowedRoles={['instructor']} />}>
+          <Route path="/dashboard/instructor" element={<InstructorDashboard />} />
+          <Route path="/instructor" element={<InstructorDashboard />} />
+        </Route>
+
+        <Route element={<RoleRoute allowedRoles={['student']} />}>
+          <Route path="/dashboard/student" element={<StudentDashboard />} />
+          <Route path="/assignments" element={<AssignmentList />} />
+        </Route>
+
+        {/* Shared protected routes */}
+        <Route path="/profile" element={<ProfilePage />} />
+
         {/* Instructor/admin: create/edit courses and manage assignments */}
-        <Route element={<RoleRoute allowedRoles={['instructor', 'admin']} />}>
+        <Route element={<RoleRoute allowedRoles={['instructor', 'admin']} />} >
           <Route path="/courses/new" element={<CourseForm />} />
           <Route path="/courses/:id/edit" element={<CourseForm />} />
-          <Route path="/instructor" element={<InstructorPage />} />
 
           {/* Create assignment under a course */}
           <Route path="/courses/:courseId/assignments/new" element={<AssignmentCreate />} />
@@ -130,11 +132,6 @@ export default function ApplicationRoutes() {
           {/* Quizzes create */}
           <Route path="/quizzes/new" element={<QuizCreate />} />
           <Route path="/courses/:courseId/quizzes/new" element={<QuizCreate />} />
-        </Route>
-
-        {/* Student: mine list (optionally protected) */}
-        <Route element={<RoleRoute allowedRoles={['student']} />}>
-          <Route path="/assignments" element={<AssignmentList />} />
         </Route>
       </Route>
 
