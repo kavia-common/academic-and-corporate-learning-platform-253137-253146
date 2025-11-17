@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { enrollInCourse, fetchCourseById as getCourseById } from '../supabase';
+import { enrollInCourse, fetchCourseById as getCourseById, listCourseVideos } from '../supabase';
 import { useAuth } from '../auth/AuthProvider';
 
 /**
@@ -14,6 +14,7 @@ export default function CourseDetail() {
 
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [videos, setVideos] = useState([]);
   const [err, setErr] = useState('');
   const [enrolling, setEnrolling] = useState(false);
   const [enrolledMsg, setEnrolledMsg] = useState('');
@@ -27,9 +28,20 @@ export default function CourseDetail() {
       try {
         setLoading(true);
         setErr('');
-        const data = await getCourseById(id);
+        const cRes = await getCourseById(id);
         if (!mounted) return;
-        setCourse(data);
+        setCourse(cRes);
+        // fetch course videos (ignore errors silently but show none)
+        try {
+          const vRes = await listCourseVideos(id);
+          if (mounted && vRes?.ok) {
+            setVideos(Array.isArray(vRes.data) ? vRes.data : []);
+          } else if (mounted) {
+            setVideos([]);
+          }
+        } catch {
+          if (mounted) setVideos([]);
+        }
       } catch (e) {
         if (!mounted) return;
         setErr(e?.message || 'Failed to load course.');
@@ -96,8 +108,77 @@ export default function CourseDetail() {
               {enrolledMsg}
             </div>
           )}
+
+          {/* Course videos */}
+          <div className="card" style={{ padding: 12 }}>
+            <h2 className="text-xl" style={{ margin: 0 }}>Videos</h2>
+            {(!videos || videos.length === 0) && (
+              <p className="text-sm" style={{ color: 'var(--color-text-muted)', marginTop: 8 }}>
+                No videos available.
+              </p>
+            )}
+            {Array.isArray(videos) && videos.length > 0 && (
+              <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
+                {videos.map((v) => (
+                  <div key={v.id} className="card" style={{ padding: 12 }}>
+                    <div className="flex items-center justify-between">
+                      <strong>{v.title || 'Video'}</strong>
+                    </div>
+                    <VideoPreview url={v.url} />
+                    <div style={{ marginTop: 8 }}>
+                      <a href={v.url} target="_blank" rel="noreferrer" className="link">Open original</a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
   );
+}
+
+// PUBLIC_INTERFACE
+/**
+ * VideoPreview renders a Google Drive preview iframe when possible; otherwise renders a link.
+ */
+function VideoPreview({ url }) {
+  const embed = toEmbedUrl(url);
+  if (!embed) {
+    return (
+      <div style={{ marginTop: 8 }}>
+        <a href={url} target="_blank" rel="noreferrer" className="link">
+          Open video
+        </a>
+      </div>
+    );
+  }
+  return (
+    <div style={{ marginTop: 8 }}>
+      <div className="aspect-video w-full rounded-md overflow-hidden border border-gray-200">
+        <iframe
+          title="Video Preview"
+          src={embed}
+          className="w-full h-full"
+          allow="autoplay"
+        />
+      </div>
+    </div>
+  );
+}
+
+function toEmbedUrl(url) {
+  if (typeof url !== 'string') return null;
+  try {
+    const u = new URL(url);
+    const host = u.hostname || '';
+    if (host.includes('drive.google.com')) {
+      const newPath = u.pathname.replace(/\/view(?:$|[/?#])/, '/preview$1');
+      return `${u.protocol}//${u.host}${newPath}${u.search}`;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }

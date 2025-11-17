@@ -55,3 +55,9 @@ export {
   removeFiles,
   listFiles,
 } from './supabaseStorage';
+
+// Course Videos
+export {
+  addCourseVideo,
+  listCourseVideos,
+} from './supabaseCourseVideos';

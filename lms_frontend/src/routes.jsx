@@ -16,6 +16,7 @@ import CourseList from './courses/CourseList';
 import CourseDetail from './courses/CourseDetail';
 import CourseForm from './courses/CourseForm';
 import CreateCourse from './courses/CreateCourse';
+import AddVideo from './courses/AddVideo';
 
 // Assignments
 import AssignmentList from './assignments/AssignmentList';
@@ -130,6 +131,8 @@ export default function ApplicationRoutes() {
           <Route path="/assignments/:id/submissions" element={<SubmissionList />} />
           <Route path="/quizzes/new" element={<QuizCreate />} />
           <Route path="/courses/:courseId/quizzes/new" element={<QuizCreate />} />
+          {/* Add Video flow for newly created course */}
+          <Route path="/admin/courses/:courseId/add-video" element={<AddVideo />} />
         </Route>
       </Route>
 
