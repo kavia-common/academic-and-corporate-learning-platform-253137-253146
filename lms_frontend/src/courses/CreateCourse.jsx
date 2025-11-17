@@ -75,9 +75,9 @@ export default function CreateCourse() {
 
       const created = await createCourseService(payload);
       setSuccessMsg('Course created successfully!');
-      // Redirect admin to Add Video flow for the new course
+      // Navigate directly to the course detail page; no separate Add Video step
       setTimeout(() => {
-        navigate(`/admin/courses/${created.id}/add-video`, { replace: true });
+        navigate(`/courses/${created.id}`, { replace: true });
       }, 250);
     } catch (e2) {
       setErr(e2?.message || 'Failed to create course.');

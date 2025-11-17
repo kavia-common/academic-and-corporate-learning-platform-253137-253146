@@ -44,8 +44,11 @@ export async function fetchCourseById(id) {
   }, 'COURSE_FETCH_FAILED', 404);
 }
 
-// PUBLIC_INTERFACE
-/** Create a new course. */
+/**
+ * PUBLIC_INTERFACE
+ * Create a new course.
+ * Supports optional fields: description, video_url, created_by.
+ */
 export async function createCourse(course) {
   // Validate required fields only: title
   const required = { title: 'string' };
