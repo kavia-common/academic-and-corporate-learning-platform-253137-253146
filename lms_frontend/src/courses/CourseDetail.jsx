@@ -4,6 +4,7 @@ import { enrollInCourse, fetchCourseById as getCourseById, listCourseVideos, add
 import { useAuth } from '../auth/AuthProvider';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
+import VideoRedirect from '../components/videos/VideoRedirect';
 
 /**
  * PUBLIC_INTERFACE
@@ -26,6 +27,8 @@ export default function CourseDetail() {
   const [newVideoTitle, setNewVideoTitle] = useState('');
   const [addingVideo, setAddingVideo] = useState(false);
   const [videoFeedback, setVideoFeedback] = useState('');
+  // When set, we render <VideoRedirect> to navigate user to the selected video URL
+  const [selectedVideoUrl, setSelectedVideoUrl] = useState('');
 
   const isAuthed = status === 'authenticated';
   const r = String(role || '').toLowerCase();
@@ -89,6 +92,8 @@ export default function CourseDetail() {
 
   return (
     <div style={{ padding: 24 }}>
+      {/* When a video has been selected or added, immediately redirect */}
+      {selectedVideoUrl ? <VideoRedirect videoUrl={selectedVideoUrl} /> : null}
       {loading && <div className="card" style={{ padding: 16 }}>Loading course…</div>}
       {err && !loading && (
         <div className="card" role="alert" style={{ padding: 16, borderColor: 'rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: 'var(--color-error)' }}>
@@ -131,8 +136,16 @@ export default function CourseDetail() {
                       <strong>{v.title || 'Video'}</strong>
                     </div>
                     <VideoPreview url={v.url} />
-                    <div style={{ marginTop: 8 }}>
+                    <div style={{ marginTop: 8, display: 'flex', gap: 12 }}>
                       <a href={v.url} target="_blank" rel="noreferrer" className="link">Open original</a>
+                      <button
+                        type="button"
+                        className="btn"
+                        onClick={() => setSelectedVideoUrl(String(v.url || '').trim())}
+                        aria-label="Open video"
+                      >
+                        Open here
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -168,6 +181,8 @@ export default function CourseDetail() {
                       setNewVideoUrl('');
                       setNewVideoTitle('');
                       setVideoFeedback('Video added successfully.');
+                      // Trigger redirect to the newly added URL
+                      setSelectedVideoUrl(url);
                     } catch (eAdd) {
                       setVideoFeedback(eAdd?.message || 'Failed to add video.');
                     } finally {
