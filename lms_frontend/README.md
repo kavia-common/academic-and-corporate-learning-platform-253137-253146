@@ -9,7 +9,7 @@ This is the React single-page application for an academic and corporate learning
    - REACT_APP_SUPABASE_URL
    - REACT_APP_SUPABASE_KEY
    - REACT_APP_FRONTEND_URL (optional but recommended for password reset redirects)
-   - Other optional runtime settings as needed
+   - Other optional runtime settings as needed (see Environment Variables)
 3. Install dependencies:
    - npm install
 4. Run development server:
@@ -17,45 +17,34 @@ This is the React single-page application for an academic and corporate learning
    The app will be available at http://localhost:3000.
 5. Run tests:
    - CI=true npm test
+6. Build for production:
+   - npm run build
 
 ## Environment Variables
 
-The frontend reads environment variables from process.env at build/run time. Only variables prefixed with REACT_APP_ are available to the browser. The following variables are supported:
+This app is based on Create React App (CRA). Only variables prefixed with REACT_APP_ are exposed to the browser. The following variables are defined in .env.example and are recognized by the code:
 
-- REACT_APP_API_BASE: Base URL for any additional backend API calls if used by your deployment.
-- REACT_APP_BACKEND_URL: Canonical backend URL (not directly used by current code, but available for integrations).
-- REACT_APP_FRONTEND_URL: Public URL of this SPA, used in auth flows such as password reset redirects.
-- REACT_APP_WS_URL: WebSocket URL if your deployment uses websockets.
-- REACT_APP_NODE_ENV: Environment label for runtime diagnostics.
-- REACT_APP_NEXT_TELEMETRY_DISABLED: If present, disables Next.js telemetry in environments that run Next tools (not required for CRA).
-- REACT_APP_ENABLE_SOURCE_MAPS: Controls source maps generation in builds when your infra honors this flag.
+Required for Supabase (actually referenced by code):
+- REACT_APP_SUPABASE_URL: Supabase project URL used by the client (src/supabase/client.js).
+- REACT_APP_SUPABASE_KEY: Supabase anon public key used by the client (src/supabase/client.js).
+
+Optional but supported:
+- REACT_APP_FRONTEND_URL: Public URL of this SPA, used in auth flows such as password reset redirects (used in src/auth/AuthProvider.js).
+- REACT_APP_API_BASE: Base URL for any additional backend API calls if used by your deployment (not referenced in current code by default).
+- REACT_APP_BACKEND_URL: Canonical backend URL (not referenced in current code by default).
+- REACT_APP_WS_URL: WebSocket URL if your deployment uses websockets (not referenced in current code).
+- REACT_APP_NODE_ENV: Environment label for runtime diagnostics (not referenced in code).
+- REACT_APP_NEXT_TELEMETRY_DISABLED: Disables Next.js telemetry in mixed environments (not required for CRA).
+- REACT_APP_ENABLE_SOURCE_MAPS: Controls source map generation in builds when honored by your infra.
 - REACT_APP_PORT: Local dev server port override when used with compatible tooling.
-- REACT_APP_TRUST_PROXY: Enable proxy trust in reverse-proxy setups (informational for frontend).
-- REACT_APP_LOG_LEVEL: Desired log level for any client logging.
+- REACT_APP_TRUST_PROXY: Informational flag for proxy setups.
+- REACT_APP_LOG_LEVEL: Desired log level for any client logging if added.
 - REACT_APP_HEALTHCHECK_PATH: Path to health endpoint if fronted by a probe.
 - REACT_APP_FEATURE_FLAGS: JSON or CSV string of feature flags to toggle UI features.
 - REACT_APP_EXPERIMENTS_ENABLED: Boolean-like flag to enable experimental UI.
-- REACT_APP_SUPABASE_URL: Required. Supabase project URL used by the client.
-- REACT_APP_SUPABASE_KEY: Required. Supabase anon public key used by the client.
 
-Important notes:
-- src/supabase/client.js reads REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_KEY. If they are not set, the app will warn in console and Supabase calls will fail.
-- src/auth/AuthProvider.js optionally uses REACT_APP_FRONTEND_URL to build redirect URLs for resetPassword.
-- src/config/env.js documents VITE_* variables for an alternative setup. In this CRA-based app, use the REACT_APP_* variables as listed above.
-
-## Setup Steps
-
-- Clone the repository and go to lms_frontend:
-  - cd academic-and-corporate-learning-platform-253137-253146/lms_frontend
-- Create your .env from the example:
-  - cp .env.example .env
-  - Fill in REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_KEY with your Supabase project details.
-  - Optionally set REACT_APP_FRONTEND_URL to your local or deployed URL (e.g., http://localhost:3000).
-- Install and run:
-  - npm install
-  - npm start
-- Build for production:
-  - npm run build
+Note on Vite variables:
+- Some internal comments (src/config/env.js) mention VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for a Vite setup. This project uses CRA at present; set REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_KEY in .env. You do not need to define VITE_* variables unless you migrate to Vite.
 
 ## Roles and Access
 
@@ -103,43 +92,40 @@ Key routes:
 - Dashboards:
   - AdminDashboard, InstructorDashboard, StudentDashboard in src/dashboards provide role-specific overviews and recent data widgets.
 
-## Supabase Expectations
+## Supabase Requirements
 
-Schema:
-- Users: The app reads user.user_metadata.role for authorization decisions. Ensure new users have user_metadata.role set to one of admin, instructor, or student.
-- Courses, Assignments, Submissions, Quizzes, Questions, Attempts: The service modules under src/supabase/ (supabaseUsers.js, supabaseCourses.js, supabaseAssignments.js, supabaseQuizzes.js) expect corresponding tables with typical columns:
-  - users/profile: id (uuid), full_name, username, website, avatar_path
-  - courses: id, title, description, instructor_id, created_at, updated_at
-  - assignments: id, course_id, title, description, due_date, created_at
-  - submissions: id, assignment_id, student_id, content/url, grade, submitted_at
-  - quizzes: id, course_id, title, description, created_at
-  - questions: id, quiz_id, text, options (json), answer, points
-  - attempts: id, quiz_id, student_id, score, started_at, completed_at
-Adjust names/types to match your Supabase schema and update service modules if your tables differ.
+Tables and typical columns expected by service modules (adjust to your schema as needed):
+- users/profile: id (uuid), full_name, username, website, avatar_path
+- courses: id, title, description, instructor_id, created_at, updated_at
+- assignments: id, course_id, title, description, due_date, created_at
+- submissions: id, assignment_id, student_id, content/url, grade, submitted_at
+- quizzes: id, course_id, title, description, created_at
+- questions: id, quiz_id, text, options (json), answer, points
+- attempts: id, quiz_id, student_id, score, started_at, completed_at
 
-RLS:
-- Enable Row Level Security and create policies that allow appropriate role access. For example, students can read courses and their own submissions, instructors can manage their course content, admins have broader access. Align policies with the frontend’s expectations.
+Row Level Security (RLS) notes:
+- Enable RLS on all tables and add policies that align with roles:
+  - Students: read courses, see and create their own submissions/attempts.
+  - Instructors: manage content for courses they own (courses, assignments, quizzes, questions) and view submissions for their courses.
+  - Admins: broad read/write for administration.
+- Ensure user metadata contains user_metadata.role so the frontend can route and gate features correctly.
 
-Auth:
-- Email/password auth should be enabled. Configure email confirmation per your requirements. If email confirmation is on, sign-up may not yield a session until verification completes.
+Authentication:
+- Enable email/password authentication in Supabase. If email confirmation is enabled, new sign-ups may require verification before a session is active.
 
-## Storage Buckets
+## Storage Bucket: avatars
 
-For profile avatars and other uploads, create a Supabase storage bucket, for example:
+Create a Supabase storage bucket for profile images:
 - Bucket name: avatars
-- Public: You can either mark public and use getPublicUrl, or keep private and use signed URLs.
-- The storage helper in src/supabase/supabaseStorage.js includes:
-  - uploadFile(path, file, bucket)
-  - getPublicUrl(path, bucket)
-  - createSignedUrl(path, expiresIn, bucket)
-  - removeFile(path, bucket)
-  - listFiles(prefix, bucket)
+- Public vs private:
+  - Public bucket works with getPublicUrl.
+  - Private bucket requires signed URLs (createSignedUrl).
+- Recommended avatar flow (to wire into Profile page):
+  - Upload to avatars/{userId}/avatar.ext using uploadFile.
+  - Store avatars path in user profile table (avatar_path).
+  - Resolve a display URL via getPublicUrl or createSignedUrl.
 
-To enable avatar uploads in the Profile page, wire these helpers to:
-- Allow user to select a file
-- Upload to avatars/{userId}/avatar.ext
-- Store the avatar_path in user profile table
-- Resolve and display a public or signed URL
+Relevant helpers: src/supabase/supabaseStorage.js
 
 ## Development Notes
 
@@ -150,10 +136,10 @@ To enable avatar uploads in the Profile page, wire these helpers to:
 ## Troubleshooting
 
 - Missing Supabase config:
-  - Console will warn if REACT_APP_SUPABASE_URL or REACT_APP_SUPABASE_KEY are not set.
+  - Console warns if REACT_APP_SUPABASE_URL or REACT_APP_SUPABASE_KEY are not set.
   - Ensure .env variables are defined before running npm start or npm run build.
 - Password reset redirect:
-  - If resetPassword errors, set REACT_APP_FRONTEND_URL to your app’s public URL so Supabase can redirect back to /auth/callback (or adjust as needed).
+  - If resetPassword errors, set REACT_APP_FRONTEND_URL to your app’s URL so Supabase can redirect back to the app.
 - Routing:
   - Unknown routes fall back to Home. Use /dashboard to be redirected to your role’s dashboard.
 
