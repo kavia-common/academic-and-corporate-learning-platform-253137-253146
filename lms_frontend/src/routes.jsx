@@ -19,10 +19,10 @@ export function HomePage() {
       {notice ? (
         <p style={{ marginTop: 12, color: 'var(--text-secondary)' }}>{notice}</p>
       ) : null}
-      <nav style={{ marginTop: 16 }}>
-        <Link className="text-blue-600 underline mr-4" to="/dashboard">Dashboard</Link>
-        <Link className="text-blue-600 underline mr-4" to="/admin">Admin</Link>
-        <Link className="text-blue-600 underline" to="/instructor">Instructor</Link>
+      <nav style={{ marginTop: 16, display: 'flex', gap: 12 }}>
+        <Link className="link" to="/dashboard">Dashboard</Link>
+        <Link className="link" to="/admin">Admin</Link>
+        <Link className="link" to="/instructor">Instructor</Link>
       </nav>
     </div>
   );

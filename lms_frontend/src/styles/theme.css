@@ -1,0 +1,184 @@
+:root {
+  /* Ocean Professional Theme */
+  --color-primary: #2563EB;  /* Blue */
+  --color-secondary: #F59E0B; /* Amber */
+  --color-success: #22C55E;
+  --color-error: #EF4444;
+
+  --color-bg: #f9fafb;       /* background */
+  --color-surface: #ffffff;  /* cards, surfaces */
+  --color-text: #111827;     /* primary text */
+  --color-text-muted: #6B7280;
+
+  --radius-md: 10px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --border: 1px solid rgba(17, 24, 39, 0.08);
+
+  --sidebar-width: 260px;
+
+  /* Gradient utilities */
+  --gradient-soft: linear-gradient(135deg, rgba(59,130,246,0.10), rgba(249,250,251,1));
+}
+
+/* Dark scheme support (optional) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0B1220;
+    --color-surface: #0F172A;
+    --color-text: #E5E7EB;
+    --color-text-muted: #94A3B8;
+    --border: 1px solid rgba(148, 163, 184, 0.18);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
+    --shadow-md: 0 6px 16px rgba(0,0,0,0.35);
+  }
+}
+
+/* App shell layout */
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "sidebar topbar"
+    "sidebar content";
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.app-shell__sidebar {
+  grid-area: sidebar;
+  background: var(--color-surface);
+  border-right: var(--border);
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
+}
+
+.app-shell__topbar {
+  grid-area: topbar;
+  background: var(--color-surface);
+  border-bottom: var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-shell__content {
+  grid-area: content;
+  padding: 16px;
+}
+
+/* Utilities */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.btn:active { transform: translateY(0); opacity: .95; }
+
+.link {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.link:hover { text-decoration: underline; }
+
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "topbar"
+      "content";
+  }
+  .app-shell__sidebar {
+    position: fixed;
+    inset: 0 30% 0 0;
+    min-height: 100vh;
+    transform: translateX(-100%);
+    transition: transform .2s ease;
+    z-index: 20;
+  }
+  .app-shell__sidebar[data-open="true"] {
+    transform: translateX(0);
+  }
+  .app-shell__content {
+    padding: 12px;
+  }
+}
+
+/* Accessible skip link */
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.skip-link:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 8px 12px;
+  background: var(--color-secondary);
+  color: #000;
+  border-radius: var(--radius-sm);
+}
+
+/* Basic nav styles for Sidebar */
+.nav {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+}
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  color: var(--color-text);
+  text-decoration: none;
+}
+.nav a:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+.nav a[aria-current="page"] {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* TopBar search input baseline */
+.topbar-search {
+  border: var(--border);
+  border-radius: 9999px;
+  padding: 8px 12px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  outline: none;
+}
+.topbar-search:focus {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35);
+  border-color: transparent;
+}
