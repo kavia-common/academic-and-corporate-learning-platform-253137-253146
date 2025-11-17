@@ -3,9 +3,10 @@ import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import ProtectedRoute from './auth/ProtectedRoute';
 import RoleRoute from './auth/RoleRoute';
 import { useAuth } from './auth/AuthProvider';
-
-// Simple demo pages for routing integration.
-// In the full app, replace these with real pages/screens.
+import SignIn from './auth/pages/SignIn';
+import SignUp from './auth/pages/SignUp';
+import ResetPassword from './auth/pages/ResetPassword';
+import VerifyEmail from './auth/pages/VerifyEmail';
 
 // PUBLIC_INTERFACE
 export function HomePage() {
@@ -23,54 +24,9 @@ export function HomePage() {
         <Link className="link" to="/dashboard">Dashboard</Link>
         <Link className="link" to="/admin">Admin</Link>
         <Link className="link" to="/instructor">Instructor</Link>
+        <Link className="link" to="/login">Sign in</Link>
+        <Link className="link" to="/signup">Sign up</Link>
       </nav>
-    </div>
-  );
-}
-
-// PUBLIC_INTERFACE
-export function LoginPage() {
-  /** Minimal login placeholder. Implement real form later. */
-  const { signIn } = useAuth();
-
-  const handleDemoLogin = async (role) => {
-    // This is a placeholder stub; real sign-in should use credentials.
-    // For now, just inform users that login should be performed from header/sign-in page.
-    // eslint-disable-next-line no-alert
-    alert(`Please sign in via your normal sign-in flow. Requested role: ${role}`);
-    // You might navigate or trigger a modal here in a full implementation.
-  };
-
-  return (
-    <div style={{ padding: 24 }}>
-      <h1 className="text-2xl font-semibold">Login</h1>
-      <p style={{ marginTop: 12 }}>Please sign in to continue.</p>
-      <div style={{ marginTop: 16 }}>
-        <button
-          type="button"
-          onClick={() => handleDemoLogin('student')}
-          className="mr-2 px-3 py-2 rounded bg-blue-600 text-white"
-        >
-          Demo Sign In (Student)
-        </button>
-        <button
-          type="button"
-          onClick={() => handleDemoLogin('instructor')}
-          className="mr-2 px-3 py-2 rounded bg-amber-500 text-white"
-        >
-          Demo Sign In (Instructor)
-        </button>
-        <button
-          type="button"
-          onClick={() => handleDemoLogin('admin')}
-          className="px-3 py-2 rounded bg-gray-800 text-white"
-        >
-          Demo Sign In (Admin)
-        </button>
-      </div>
-      <div style={{ marginTop: 16 }}>
-        <Link className="text-blue-600 underline" to="/">Back home</Link>
-      </div>
     </div>
   );
 }
@@ -107,13 +63,18 @@ function InstructorPage() {
 /**
  * PUBLIC_INTERFACE
  * ApplicationRoutes: central routing configuration using React Router v6,
- * including protected and role-based routes.
+ * including protected and role-based routes and Supabase auth pages.
  */
 export default function ApplicationRoutes() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<LoginPage />} />
+
+      {/* Auth pages */}
+      <Route path="/login" element={<SignIn />} />
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
 
       {/* Protected user routes */}
       <Route element={<ProtectedRoute />}>

@@ -69,12 +69,26 @@ export default function Sidebar({ onNavigate }) {
         )}
 
         {!isAuthed && (
-          <li>
-            <NavLink to="/login" onClick={onNavigate}>
-              <span>🔐</span>
-              <span>Login</span>
-            </NavLink>
-          </li>
+          <>
+            <li>
+              <NavLink to="/login" onClick={onNavigate}>
+                <span>🔐</span>
+                <span>Sign in</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/signup" onClick={onNavigate}>
+                <span>✨</span>
+                <span>Sign up</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/reset-password" onClick={onNavigate}>
+                <span>🔑</span>
+                <span>Reset password</span>
+              </NavLink>
+            </li>
+          </>
         )}
       </ul>
     </nav>
