@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchCourses as listCourses } from '../supabase';
+import { listCourses as listCoursesCompat } from '../supabase/supabaseCourses';
 import { useAuth } from '../auth/AuthProvider';
 import { Table } from '../components/ui/Table';
 import { Card, CardBody, CardHeader } from '../components/ui/Card';
@@ -12,7 +12,7 @@ import { Button } from '../components/ui/Button';
  */
 export default function CourseList() {
   const { status, role, user } = useAuth();
-  const [courses, setCourses] = useState([]);
+  const [courses, setCourses] = useState(() => []);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
 
@@ -25,19 +25,19 @@ export default function CourseList() {
       try {
         setLoading(true);
         setErr('');
-        const data = await listCourses();
+        // Use normalized helper that always returns an array or throws
+        const list = await listCoursesCompat();
         if (!mounted) return;
-        setCourses(data);
+        setCourses(Array.isArray(list) ? list : []);
       } catch (e) {
         if (!mounted) return;
+        setCourses([]);
         setErr(e?.message || 'Unable to load courses.');
       } finally {
         if (mounted) setLoading(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
   const columns = [
@@ -45,12 +45,22 @@ export default function CourseList() {
     { key: 'description', header: 'Description' },
     { key: 'actions', header: 'Actions' },
   ];
-  const data = courses.map((c) => ({
-    title: <Link to={`/courses/${c.id}`} className="text-blue-600 hover:underline font-medium">{c.title}</Link>,
+
+  const list = Array.isArray(courses) ? courses : [];
+  const data = list.map((c) => ({
+    title: (
+      <Link
+        to={`/courses/${c.id}`}
+        className="text-blue-600 hover:underline font-medium"
+        aria-label={`Open course ${c.title}`}
+      >
+        {c.title}
+      </Link>
+    ),
     description: c.description || '—',
     actions:
       isAuthed && (r === 'instructor' || r === 'admin') && user?.id === c.instructor_id ? (
-        <Link to={`/courses/${c.id}/edit`} className="text-blue-600 hover:underline">
+        <Link to={`/courses/${c.id}/edit`} className="text-blue-600 hover:underline" aria-label={`Edit ${c.title}`}>
           Edit
         </Link>
       ) : (
@@ -64,18 +74,36 @@ export default function CourseList() {
         <CardHeader className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Courses</h1>
           {isAuthed && (r === 'instructor' || r === 'admin') && (
-            <Button as={Link} to="/courses/new" aria-label="Create course">Create course</Button>
+            <Button as={Link} to="/courses/new" aria-label="Create course">
+              Create course
+            </Button>
           )}
         </CardHeader>
         <CardBody>
-          {loading && <div className="rounded-md border border-gray-200 bg-white p-3 text-sm">Loading courses…</div>}
+          {loading && (
+            <div className="rounded-md border border-gray-200 bg-white p-3 text-sm" aria-live="polite">
+              Loading courses…
+            </div>
+          )}
           {err && !loading && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
+            <div
+              className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+              role="alert"
+              aria-live="assertive"
+            >
               {err}
             </div>
           )}
           {!loading && !err && (
-            <Table columns={columns} data={data} caption="List of available courses" />
+            <>
+              {list.length === 0 ? (
+                <div className="rounded-md border border-gray-200 bg-white p-6 text-sm text-gray-600">
+                  No courses available yet.
+                </div>
+              ) : (
+                <Table columns={columns} data={data} caption="List of available courses" />
+              )}
+            </>
           )}
         </CardBody>
       </Card>

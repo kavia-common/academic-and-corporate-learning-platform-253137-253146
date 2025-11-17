@@ -2,11 +2,11 @@ import { supabase } from './client';
 import { safeExec, shapeError, validatePayload, buildRange } from './utils';
 
 // PUBLIC_INTERFACE
-/** Fetch list of courses with optional pagination. */
+/** Fetch list of courses with optional pagination. Always resolves with an array (possibly empty). */
 export async function fetchCourses(options = {}) {
   const { page = 1, pageSize = 50 } = options;
   const { from, to } = buildRange(page, pageSize);
-  return safeExec(async () => {
+  const res = await safeExec(async () => {
     const { data, error } = await supabase
       .from('courses')
       .select('*')
@@ -14,7 +14,25 @@ export async function fetchCourses(options = {}) {
       .range(from, to);
     return { data, error };
   }, 'COURSE_LIST_FAILED', 400);
+
+  // Normalize to array on success, maintain error shape otherwise
+  if (res && res.ok) {
+    return {
+      ...res,
+      data: Array.isArray(res.data) ? res.data : [],
+    };
+  }
+  return res;
 }
+
+// Backward compatibility helper returning bare array or throws for consumers expecting direct array
+export const listCourses = async (options = {}) => {
+  const res = await fetchCourses(options);
+  if (!res.ok) {
+    throw new Error(res.error?.message || 'Failed to load courses');
+  }
+  return Array.isArray(res.data) ? res.data : [];
+};
 
 // PUBLIC_INTERFACE
 /** Fetch single course by id. */

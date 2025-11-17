@@ -14,7 +14,7 @@ export {
   listRecentItems,
 } from './supabaseUsers';
 
-// Courses
+ // Courses
 export {
   fetchCourses,
   fetchCourseById,
