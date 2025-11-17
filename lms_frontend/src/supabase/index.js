@@ -35,13 +35,11 @@ export {
   listSubmissions,
 } from './supabaseAssignments';
 
-// Quizzes
+/* Quizzes */
 export {
   fetchQuizzes,
   fetchQuizById,
   createQuiz,
-  updateQuiz,
-  deleteQuiz,
   createQuestions,
   getQuizById,
   getQuestions,

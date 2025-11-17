@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthProvider';
+import { Card, CardBody, CardHeader, CardFooter } from '../../components/ui/Card';
+import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
 
 /**
  * PUBLIC_INTERFACE
@@ -56,98 +59,67 @@ export default function SignIn() {
   const isLoading = submitting || status === 'loading' || status === 'idle';
 
   return (
-    <div style={{ padding: 24, maxWidth: 420, margin: '0 auto' }}>
-      <div className="card" style={{ padding: 20 }}>
-        <h1 className="text-2xl font-semibold" style={{ marginBottom: 8 }}>
-          Sign in
-        </h1>
-        <p style={{ color: 'var(--color-text-muted)', marginBottom: 16 }}>
-          Welcome back. Enter your credentials to access your account.
-        </p>
-
-        {location.state?.notice && (
-          <div
-            className="card"
-            style={{
-              padding: 12,
-              background: 'rgba(37,99,235,0.08)',
-              borderColor: 'rgba(37,99,235,0.3)',
-              marginBottom: 12,
-            }}
-          >
-            {location.state.notice}
-          </div>
-        )}
-
-        {error && (
-          <div
-            role="alert"
-            className="card"
-            style={{
-              padding: 12,
-              background: 'rgba(239,68,68,0.1)',
-              borderColor: 'rgba(239,68,68,0.4)',
-              color: 'var(--color-error)',
-              marginBottom: 12,
-            }}
-          >
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={onSubmit} noValidate>
-          <div style={{ display: 'grid', gap: 12 }}>
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span>Email</span>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={onChange}
-                required
-                placeholder="you@example.com"
-                className="topbar-search"
-                style={{ borderRadius: 8 }}
-              />
-            </label>
-
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span>Password</span>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={onChange}
-                required
-                placeholder="••••••••"
-                className="topbar-search"
-                style={{ borderRadius: 8 }}
-              />
-            </label>
-
-            <button
-              type="submit"
-              className="btn"
-              disabled={isLoading}
-              aria-busy={isLoading}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <h1 className="text-2xl font-semibold">Sign in</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Welcome back. Enter your credentials to access your account.
+          </p>
+        </CardHeader>
+        <CardBody>
+          {location.state?.notice && (
+            <div
+              className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 mb-3"
+              role="status"
             >
+              {location.state.notice}
+            </div>
+          )}
+          {error && (
+            <div
+              role="alert"
+              className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-3"
+            >
+              {error}
+            </div>
+          )}
+          <form onSubmit={onSubmit} className="space-y-3" noValidate>
+            <Input
+              label="Email"
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={onChange}
+              placeholder="you@example.com"
+              required
+            />
+            <Input
+              label="Password"
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={onChange}
+              placeholder="••••••••"
+              required
+            />
+            <Button type="submit" className="w-full" disabled={isLoading} aria-busy={isLoading}>
               {isLoading ? 'Signing in…' : 'Sign in'}
-            </button>
-          </div>
-        </form>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
-          <Link to="/reset-password" className="link">
+            </Button>
+          </form>
+        </CardBody>
+        <CardFooter className="flex items-center justify-between">
+          <Link to="/reset-password" className="text-sm text-blue-600 hover:underline">
             Forgot password?
           </Link>
-          <span style={{ color: 'var(--color-text-muted)' }}>
+          <span className="text-sm text-gray-600">
             No account?{' '}
-            <Link to="/signup" className="link">
+            <Link to="/signup" className="text-blue-600 hover:underline">
               Sign up
             </Link>
           </span>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

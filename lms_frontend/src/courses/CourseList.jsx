@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchCourses as listCourses } from '../supabase';
 import { useAuth } from '../auth/AuthProvider';
+import { Table } from '../components/ui/Table';
+import { Card, CardBody, CardHeader } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
 
 /**
  * PUBLIC_INTERFACE
@@ -22,7 +25,6 @@ export default function CourseList() {
       try {
         setLoading(true);
         setErr('');
-        // Instructors may want to view their own first; for now, show all.
         const data = await listCourses();
         if (!mounted) return;
         setCourses(data);
@@ -38,47 +40,45 @@ export default function CourseList() {
     };
   }, []);
 
+  const columns = [
+    { key: 'title', header: 'Title' },
+    { key: 'description', header: 'Description' },
+    { key: 'actions', header: 'Actions' },
+  ];
+  const data = courses.map((c) => ({
+    title: <Link to={`/courses/${c.id}`} className="text-blue-600 hover:underline font-medium">{c.title}</Link>,
+    description: c.description || '—',
+    actions:
+      isAuthed && (r === 'instructor' || r === 'admin') && user?.id === c.instructor_id ? (
+        <Link to={`/courses/${c.id}/edit`} className="text-blue-600 hover:underline">
+          Edit
+        </Link>
+      ) : (
+        ''
+      ),
+  }));
+
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-        <h1 className="text-2xl font-semibold">Courses</h1>
-        {isAuthed && (r === 'instructor' || r === 'admin') && (
-          <Link to="/courses/new" className="btn" aria-label="Create course">Create course</Link>
-        )}
-      </div>
-
-      {loading && <div className="card" style={{ padding: 16 }}>Loading courses…</div>}
-      {err && !loading && (
-        <div className="card" role="alert" style={{ padding: 16, borderColor: 'rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: 'var(--color-error)' }}>
-          {err}
-        </div>
-      )}
-
-      {!loading && !err && (
-        <div style={{ display: 'grid', gap: 12 }}>
-          {courses.length === 0 ? (
-            <div className="card" style={{ padding: 16 }}>No courses available.</div>
-          ) : (
-            courses.map((c) => (
-              <div key={c.id} className="card" style={{ padding: 16, display: 'grid', gap: 6 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Link to={`/courses/${c.id}`} className="link" style={{ fontWeight: 600, fontSize: 18 }}>
-                    {c.title}
-                  </Link>
-                  {isAuthed && (r === 'instructor' || r === 'admin') && user?.id === c.instructor_id && (
-                    <Link to={`/courses/${c.id}/edit`} className="btn" aria-label={`Edit ${c.title}`}>
-                      Edit
-                    </Link>
-                  )}
-                </div>
-                <p style={{ color: 'var(--color-text-muted)', margin: 0 }}>
-                  {c.description || 'No description provided.'}
-                </p>
-              </div>
-            ))
+    <div className="p-6">
+      <Card>
+        <CardHeader className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold">Courses</h1>
+          {isAuthed && (r === 'instructor' || r === 'admin') && (
+            <Button as={Link} to="/courses/new" aria-label="Create course">Create course</Button>
           )}
-        </div>
-      )}
+        </CardHeader>
+        <CardBody>
+          {loading && <div className="rounded-md border border-gray-200 bg-white p-3 text-sm">Loading courses…</div>}
+          {err && !loading && (
+            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
+              {err}
+            </div>
+          )}
+          {!loading && !err && (
+            <Table columns={columns} data={data} caption="List of available courses" />
+          )}
+        </CardBody>
+      </Card>
     </div>
   );
 }

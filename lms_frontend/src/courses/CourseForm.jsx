@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { createCourse, fetchCourseById as getCourseById, updateCourse } from '../supabase';
 import { useAuth } from '../auth/AuthProvider';
+import { Card, CardBody, CardFooter, CardHeader } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
+import { Button } from '../components/ui/Button';
+import { Modal } from '../components/ui/Modal';
 
 /**
  * PUBLIC_INTERFACE
@@ -23,6 +27,8 @@ export default function CourseForm() {
   const [loading, setLoading] = useState(editing);
   const [err, setErr] = useState('');
   const [saving, setSaving] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const cancelFocusRef = useRef(null);
 
   useEffect(() => {
     let mounted = true;
@@ -33,7 +39,6 @@ export default function CourseForm() {
           setErr('');
           const data = await getCourseById(id);
           if (!mounted) return;
-          // Only allow editing if current user is owner (instructor) or admin
           if (!(r === 'admin' || (r === 'instructor' && data.instructor_id === user?.id))) {
             navigate('/courses', { replace: true, state: { notice: 'You do not have permission to edit this course.' } });
             return;
@@ -52,10 +57,10 @@ export default function CourseForm() {
 
   if (!isAuthed || !(r === 'instructor' || r === 'admin')) {
     return (
-      <div style={{ padding: 24 }}>
-        <div className="card" style={{ padding: 16 }}>
-          You do not have access to this page.
-        </div>
+      <div className="p-6">
+        <Card>
+          <CardBody>You do not have access to this page.</CardBody>
+        </Card>
       </div>
     );
   }
@@ -91,65 +96,93 @@ export default function CourseForm() {
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <div className="card" style={{ padding: 16 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 className="text-2xl font-semibold" style={{ margin: 0 }}>
-            {editing ? 'Edit course' : 'Create course'}
-          </h1>
-          <Link to="/courses" className="link">Cancel</Link>
-        </div>
+    <div className="p-6">
+      <Card>
+        <CardHeader className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold">{editing ? 'Edit course' : 'Create course'}</h1>
+          <Button variant="secondary" onClick={() => setConfirmOpen(true)}>Cancel</Button>
+        </CardHeader>
+        <CardBody>
+          {loading ? (
+            <div>Loading…</div>
+          ) : (
+            <form onSubmit={onSubmit} noValidate className="space-y-3">
+              {err && (
+                <div
+                  className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+                  role="alert"
+                >
+                  {err}
+                </div>
+              )}
 
-        {loading ? (
-          <div style={{ marginTop: 12 }}>Loading…</div>
-        ) : (
-          <form onSubmit={onSubmit} noValidate style={{ display: 'grid', gap: 12, marginTop: 12 }}>
-            {err && (
-              <div
-                className="card"
-                role="alert"
-                style={{ padding: 12, background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.4)', color: 'var(--color-error)' }}
-              >
-                {err}
-              </div>
-            )}
-
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span>Title</span>
-              <input
-                type="text"
+              <Input
+                label="Title"
                 name="title"
+                type="text"
                 value={form.title}
                 onChange={onChange}
-                className="topbar-search"
-                style={{ borderRadius: 8 }}
                 placeholder="e.g., Introduction to React"
                 required
               />
-            </label>
 
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span>Description</span>
-              <textarea
-                name="description"
-                rows={5}
-                value={form.description}
-                onChange={onChange}
-                className="topbar-search"
-                style={{ borderRadius: 8, resize: 'vertical' }}
-                placeholder="Describe the course overview and objectives"
-              />
-            </label>
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows={5}
+                  value={form.description}
+                  onChange={onChange}
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Describe the course overview and objectives"
+                />
+              </div>
 
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button type="submit" className="btn" disabled={saving} aria-busy={saving}>
-                {saving ? 'Saving…' : (editing ? 'Save changes' : 'Create')}
-              </button>
-              <Link to="/courses" className="link">Back to courses</Link>
-            </div>
-          </form>
-        )}
-      </div>
+              <div className="flex gap-2">
+                <Button type="submit" disabled={saving}>
+                  {saving ? 'Saving…' : (editing ? 'Save changes' : 'Create')}
+                </Button>
+                <Link to="/courses" className="text-blue-600 hover:underline text-sm self-center">
+                  Back to courses
+                </Link>
+              </div>
+            </form>
+          )}
+        </CardBody>
+        <CardFooter />
+      </Card>
+
+      <Modal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title="Discard changes?"
+        initialFocusRef={cancelFocusRef}
+      >
+        <p className="text-sm text-gray-700">
+          Are you sure you want to discard your changes? This action cannot be undone.
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button
+            ref={cancelFocusRef}
+            variant="secondary"
+            onClick={() => setConfirmOpen(false)}
+          >
+            Keep editing
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              setForm({ title: '', description: '' });
+              setConfirmOpen(false);
+            }}
+          >
+            Discard
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

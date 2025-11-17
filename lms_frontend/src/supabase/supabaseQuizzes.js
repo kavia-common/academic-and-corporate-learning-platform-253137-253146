@@ -2,6 +2,27 @@ import { supabase } from './client';
 import { safeExec, shapeError, validatePayload, buildRange } from './utils';
 
 // PUBLIC_INTERFACE
+/** Update a quiz by id with partial fields. */
+export async function updateQuiz(id, fields = {}) {
+  if (!id) return shapeError(new Error('id is required'), 'VALIDATION_ERROR', 400);
+  const payload = { ...fields };
+  return safeExec(async () => {
+    const { data, error } = await supabase.from('quizzes').update(payload).eq('id', id).select().single();
+    return { data, error };
+  }, 'QUIZ_UPDATE_FAILED', 400);
+}
+
+// PUBLIC_INTERFACE
+/** Delete a quiz by id. */
+export async function deleteQuiz(id) {
+  if (!id) return shapeError(new Error('id is required'), 'VALIDATION_ERROR', 400);
+  return safeExec(async () => {
+    const { data, error } = await supabase.from('quizzes').delete().eq('id', id).select().single();
+    return { data, error };
+  }, 'QUIZ_DELETE_FAILED', 400);
+}
+
+// PUBLIC_INTERFACE
 /** Fetch quizzes optionally filtered by courseId. */
 export async function fetchQuizzes(courseId, options = {}) {
   const { page = 1, pageSize = 100 } = options;
