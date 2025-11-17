@@ -55,6 +55,9 @@ export default function TopBar({ onMenuToggle }) {
         <Link to="/courses" className="link" aria-label="Browse courses" style={{ marginRight: 8 }}>
           Courses
         </Link>
+        <Link to="/quizzes" className="link" aria-label="Browse quizzes" style={{ marginRight: 8 }}>
+          Quizzes
+        </Link>
         {isAuthed ? (
           <>
             <span style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>

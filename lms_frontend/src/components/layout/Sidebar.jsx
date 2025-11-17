@@ -67,6 +67,13 @@ export default function Sidebar({ onNavigate }) {
           </NavLink>
         </li>
 
+        <li>
+          <NavLink to="/quizzes" onClick={onNavigate}>
+            <span>❓</span>
+            <span>Quizzes</span>
+          </NavLink>
+        </li>
+
         {isAuthed && (r === 'admin') && (
           <li>
             <NavLink to="/admin" onClick={onNavigate}>

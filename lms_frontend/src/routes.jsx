@@ -14,6 +14,10 @@ import AssignmentList from './assignments/AssignmentList';
 import AssignmentDetail from './assignments/AssignmentDetail';
 import AssignmentCreate from './assignments/AssignmentCreate';
 import SubmissionList from './assignments/SubmissionList';
+import QuizList from './quizzes/QuizList';
+import QuizCreate from './quizzes/QuizCreate';
+import QuizDetail from './quizzes/QuizDetail';
+import QuizTake from './quizzes/QuizTake';
 
 // PUBLIC_INTERFACE
 export function HomePage() {
@@ -32,6 +36,7 @@ export function HomePage() {
         <Link className="link" to="/admin">Admin</Link>
         <Link className="link" to="/instructor">Instructor</Link>
         <Link className="link" to="/courses">Courses</Link>
+        <Link className="link" to="/quizzes">Quizzes</Link>
         <Link className="link" to="/login">Sign in</Link>
         <Link className="link" to="/signup">Sign up</Link>
       </nav>
@@ -94,6 +99,12 @@ export default function ApplicationRoutes() {
       {/* Assignment detail (public view), submission gated in component by role */}
       <Route path="/assignments/:id" element={<AssignmentDetail />} />
 
+      {/* Public/Contextual quizzes */}
+      <Route path="/quizzes" element={<QuizList />} />
+      <Route path="/courses/:courseId/quizzes" element={<QuizList />} />
+      <Route path="/quizzes/:id" element={<QuizDetail />} />
+      <Route path="/quizzes/:id/take" element={<QuizTake />} />
+
       {/* Protected user routes */}
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
@@ -113,6 +124,10 @@ export default function ApplicationRoutes() {
           <Route path="/courses/:courseId/assignments/new" element={<AssignmentCreate />} />
           {/* View submissions for an assignment */}
           <Route path="/assignments/:id/submissions" element={<SubmissionList />} />
+
+          {/* Quizzes create */}
+          <Route path="/quizzes/new" element={<QuizCreate />} />
+          <Route path="/courses/:courseId/quizzes/new" element={<QuizCreate />} />
         </Route>
 
         {/* Student: mine list (optionally protected) */}
