@@ -27,27 +27,12 @@ function App() {
           <ApplicationRoutes />
         </Container>
 
-        {/* Quick access link to Learning Paths */}
+        {/* Quick access link to Courses */}
         <div className="px-4 py-2">
-          <Link to="/paths" className="nav-link text-blue-600 hover:underline">
-            Browse Learning Paths
+          <Link to="/courses" className="nav-link text-blue-600 hover:underline">
+            Browse Courses
           </Link>
         </div>
-
-        {/* Hidden but accessible theme toggle for users needing contrast change */}
-        <button
-          className="theme-toggle"
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-          style={{
-            position: 'fixed',
-            bottom: 1,
-            right: 1,
-            zIndex: 5
-          }}
-        >
-          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-        </button>
       </BrowserRouter>
     </div>
   );

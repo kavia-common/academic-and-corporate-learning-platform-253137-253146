@@ -35,10 +35,8 @@ import AdminDashboard from './dashboards/AdminDashboard';
 
 import StudentDashboard from './dashboards/StudentDashboard';
 
-// Learning Paths pages
 import Paths from './pages/Paths';
 import PathDetail from './pages/PathDetail';
-import CourseLessons from './pages/CourseLessons';
 
 // PUBLIC_INTERFACE
 export function HomePage() {
@@ -54,8 +52,8 @@ export function HomePage() {
       ) : null}
       {/* Secondary navigation removed per UI cleanup requirements */}
       <div style={{ marginTop: 16 }}>
-        <Link to="/paths" className="nav-link text-blue-600 hover:underline">
-          Browse Learning Paths
+        <Link to="/courses" className="nav-link text-blue-600 hover:underline">
+          Browse Courses
         </Link>
       </div>
     </div>
@@ -92,14 +90,16 @@ export default function ApplicationRoutes() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
 
-      {/* Learning paths & courses (public) */}
-      <Route path="/paths" element={<Paths />} />
-      <Route path="/paths/:pathId" element={<PathDetail />} />
-      <Route path="/courses/:courseId" element={<CourseLessons />} />
+      {/* Courses (public) */}
+      <Route path="/courses" element={<Paths />} />
+      <Route path="/courses/:id" element={<PathDetail />} />
+      {/* Redirects from old paths */}
+      <Route path="/paths" element={<Navigate to="/courses" replace />} />
+      <Route path="/paths/:pathId" element={<Navigate to="/courses/:pathId" replace />} />
 
-      {/* Public course/quiz views */}
-      <Route path="/courses" element={<CourseList />} />
-      <Route path="/courses/:id" element={<CourseDetail />} />
+      {/* Public course/quiz views (backend-driven full courses) */}
+      <Route path="/courses" element={<Paths />} />
+      <Route path="/courses/:id" element={<PathDetail />} />
       <Route path="/quizzes" element={<QuizList />} />
       <Route path="/quizzes/:id" element={<QuizDetail />} />
       <Route path="/quizzes/:id/take" element={<QuizTake />} />

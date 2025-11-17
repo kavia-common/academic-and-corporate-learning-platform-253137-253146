@@ -57,7 +57,6 @@ export default function Sidebar({ items = [], onNavigate }) {
     ...(isAuthed ? [{ label: 'Dashboard', to: '/dashboard' }] : []),
     { label: 'Courses', to: '/courses' },
     { label: 'Quizzes', to: '/quizzes' },
-    { label: 'Learning Paths', to: '/paths' },
     ...(isAuthed && r === 'student' ? [{ label: 'My Assignments', to: '/assignments' }] : []),
     ...(isAuthed ? [{ label: 'Profile', to: '/profile' }] : []),
     ...(isAuthed && r === 'admin' ? [{ label: 'Admin', to: '/admin', roles: ['admin'] }] : []),
