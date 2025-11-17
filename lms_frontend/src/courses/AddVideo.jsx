@@ -5,6 +5,7 @@ import { addCourseVideo, listCourseVideos, fetchCourseById } from '../supabase';
 import { Card, CardBody, CardHeader, CardFooter } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
+import { normalizeDriveUrl, toEmbedUrl, isGoogleDriveUrl } from '../utils/videoUrl';
 
 // PUBLIC_INTERFACE
 /**
@@ -56,18 +57,30 @@ export default function AddVideo() {
 
   const addVideo = async (e) => {
     e.preventDefault();
-    const url = String(form.url || '').trim();
-    if (!url) {
+    const rawUrl = String(form.url || '').trim();
+    if (!rawUrl) {
       setErr('Video URL is required.');
       return;
     }
+
+    // Normalize Google Drive URLs; keep non-Drive URLs as-is.
+    let urlToSave = rawUrl;
+    if (isGoogleDriveUrl(rawUrl)) {
+      const normalized = normalizeDriveUrl(rawUrl, { strict: true });
+      if (!normalized) {
+        setErr('That Google Drive link is not recognized. Please ensure it looks like https://drive.google.com/file/d/FILE_ID/view');
+        return;
+      }
+      urlToSave = normalized;
+    }
+
     try {
       setSaving(true);
       setErr('');
       const res = await addCourseVideo({
         course_id: courseId,
         title: String(form.title || '').trim() || null,
-        url,
+        url: urlToSave,
         created_by: user?.id || null,
       });
       if (!res.ok) throw new Error(res.error?.message || 'Failed to add video');
@@ -141,6 +154,7 @@ export default function AddVideo() {
                   placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
                   required
                   inputMode="url"
+                  description="Google Drive links will auto-convert to preview for embedding."
                 />
                 <div className="flex gap-2">
                   <Button type="submit" loading={saving} disabled={saving}>Add video</Button>
@@ -213,23 +227,4 @@ export function VideoPreview({ url, className }) {
   );
 }
 
-/**
- * Convert Google Drive "view" links to "preview" links for embedding.
- * Returns null if not recognized.
- */
-function toEmbedUrl(url) {
-  if (typeof url !== 'string') return null;
-  try {
-    const u = new URL(url);
-    const host = u.hostname || '';
-    if (host.includes('drive.google.com')) {
-      // Replace '/view' with '/preview' while retaining path/query
-      const newPath = u.pathname.replace(/\/view(?:$|[/?#])/, '/preview$1');
-      const rebuilt = `${u.protocol}//${u.host}${newPath}${u.search}`;
-      return rebuilt;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
+
