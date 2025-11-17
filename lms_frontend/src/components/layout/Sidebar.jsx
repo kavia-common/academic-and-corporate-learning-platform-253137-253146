@@ -31,34 +31,14 @@ export default function Sidebar({ onNavigate }) {
       </div>
 
       <ul className="nav" role="list" style={{ display: 'grid', gap: 6 }}>
-        {/* Top group: only Dashboard and Admin (role-gated). No Home or '/' items here. */}
+        {/* Top group: only Dashboard. Admin moved to render directly below Profile for requested ordering. */}
         {isAuthed && (
-          <>
-            <li>
-              <NavLink to="/dashboard" onClick={onNavigate} className={linkClass} end>
-                <span aria-hidden>📊</span>
-                <span>Dashboard</span>
-              </NavLink>
-            </li>
-            {r === 'admin' && (
-              <li>
-                {/* PUBLIC_INTERFACE
-                  Admin navigation item - visible only to admin role.
-                  Links to '/admin' which is protected in routes and maps to the AdminDashboard.
-                  Active state is handled by NavLink isActive styles via linkClass.
-                */}
-                <NavLink
-                  to="/admin"
-                  onClick={onNavigate}
-                  className={linkClass}
-                  end
-                >
-                  <span aria-hidden>🛠️</span>
-                  <span>Admin</span>
-                </NavLink>
-              </li>
-            )}
-          </>
+          <li>
+            <NavLink to="/dashboard" onClick={onNavigate} className={linkClass} end>
+              <span aria-hidden>📊</span>
+              <span>Dashboard</span>
+            </NavLink>
+          </li>
         )}
 
         {/* Remaining navigation (ordered): Courses, Quizzes, role-specific, Profile or Auth */}
@@ -103,12 +83,32 @@ export default function Sidebar({ onNavigate }) {
         )}
 
         {isAuthed ? (
-          <li>
-            <NavLink to="/profile" onClick={onNavigate} className={linkClass}>
-              <span aria-hidden>👤</span>
-              <span>Profile</span>
-            </NavLink>
-          </li>
+          <>
+            <li>
+              <NavLink to="/profile" onClick={onNavigate} className={linkClass}>
+                <span aria-hidden>👤</span>
+                <span>Profile</span>
+              </NavLink>
+            </li>
+            {r === 'admin' && (
+              <li>
+                {/* PUBLIC_INTERFACE
+                  Admin navigation item - visible only to admin role.
+                  Positioned directly below the Profile item per requirement.
+                  Active state is handled by NavLink via linkClass.
+                */}
+                <NavLink
+                  to="/admin"
+                  onClick={onNavigate}
+                  className={linkClass}
+                  end
+                >
+                  <span aria-hidden>🛠️</span>
+                  <span>Admin</span>
+                </NavLink>
+              </li>
+            )}
+          </>
         ) : (
           <>
             <li>
