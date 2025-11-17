@@ -45,15 +45,20 @@
 }
 .link:hover { text-decoration: underline; }
 
-.topbar-search {
-  border: 1px solid rgba(17, 24, 39, 0.15);
-  border-radius: 9999px;
-  padding: 8px 12px;
-  background: var(--color-background);
-  color: var(--color-text);
-  outline: none;
+/* Skip link for accessibility */
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: -999px;
 }
-.topbar-search:focus {
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35);
-  border-color: transparent;
+.skip-link:focus {
+  left: 16px;
+  top: 16px;
+  z-index: 100;
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  padding: 8px 12px;
+  border-radius: 6px;
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-ring);
 }

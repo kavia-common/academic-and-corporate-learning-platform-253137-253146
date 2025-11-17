@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import TopBar from './TopBar';
 import Sidebar from './Sidebar';
 
 /**
  * PUBLIC_INTERFACE
- * Container provides the application shell layout (TopBar + Sidebar) and renders children as routed content.
+ * Container provides the application shell layout (Sidebar only) and renders children as routed content.
  * - Handles responsive sidebar toggle on mobile
  * - Exposes skip link for accessibility
  */
@@ -20,26 +19,38 @@ export default function Container({ children }) {
     return () => document.removeEventListener('keydown', closeOnEscape);
   }, [closeOnEscape]);
 
+  // Layout: sidebar on the left, content on the right. Removed TopBar and any reserved top spacing.
   return (
-    <div className="app-shell" style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}>
+    <div className="app-shell" style={{ background: 'var(--color-background)', color: 'var(--color-text)' }}>
       <a href="#main" className="skip-link">Skip to content</a>
 
-      <aside
-        className="app-shell__sidebar"
-        data-open={sidebarOpen}
-        aria-hidden={!sidebarOpen}
-        aria-label="Primary"
-      >
-        <Sidebar onNavigate={() => setSidebarOpen(false)} />
-      </aside>
+      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', minHeight: '100vh' }}>
+        <aside
+          className="app-shell__sidebar"
+          data-open={sidebarOpen}
+          aria-hidden={!sidebarOpen}
+          aria-label="Primary"
+          style={{
+            borderRight: '1px solid rgba(17,24,39,0.08)',
+            background: 'var(--color-surface)'
+          }}
+        >
+          <Sidebar onNavigate={() => setSidebarOpen(false)} />
+        </aside>
 
-      <header className="app-shell__topbar" role="banner">
-        <TopBar onMenuToggle={() => setSidebarOpen(v => !v)} />
-      </header>
-
-      <main id="main" className="app-shell__content" role="main" tabIndex={-1}>
-        {children}
-      </main>
+        <main
+          id="main"
+          className="app-shell__content"
+          role="main"
+          tabIndex={-1}
+          style={{
+            padding: 24,
+            background: 'var(--color-background)'
+          }}
+        >
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

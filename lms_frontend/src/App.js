@@ -23,7 +23,7 @@ function App() {
     <div className="App" data-app-theme={theme}>
       <BrowserRouter>
         <Container>
-          {/* Routed content renders here with Sidebar + TopBar around it */}
+          {/* Routed content renders here with Sidebar-only layout */}
           <ApplicationRoutes />
         </Container>
 
