@@ -1,26 +1,73 @@
-//
-// PUBLIC INTERFACE
-// Video URL utilities: detect/normalize Google Drive links for safe iframe embedding.
-//
+/**
+ * PUBLIC_INTERFACE
+ * convertDriveLink normalizes Google Drive links into a preview-friendly URL that is safe for iframe embedding.
+ *
+ * Supported input patterns (examples):
+ * - https://drive.google.com/file/d/FILE_ID/view
+ * - https://drive.google.com/file/d/FILE_ID/view?usp=share_link
+ * - https://drive.google.com/uc?id=FILE_ID&export=download
+ * - https://drive.google.com/uc?export=view&id=FILE_ID
+ * - https://drive.google.com/open?id=FILE_ID
+ *
+ * Returns:
+ * - https://drive.google.com/file/d/FILE_ID/preview for recognized patterns
+ * - The original URL if not recognized or not a Drive link (non-strict usage)
+ *
+ * Note:
+ * - Inline sanity: if url is not a string, returns the input as-is to avoid throwing at call sites.
+ */
+export function convertDriveLink(url) {
+  if (typeof url !== 'string') return url;
+  // Attempt to parse; if invalid, exit early
+  let u;
+  try {
+    u = new URL(url);
+  } catch {
+    return url;
+  }
+
+  // Only handle *.drive.google.com hosts
+  const isDrive = /(^|\.)drive\.google\.com$/i.test(u.hostname);
+  if (!isDrive) return url;
+
+  // Try to extract FILE_ID from supported path/query formats
+  // 1) /file/d/FILE_ID/(view|preview)
+  const pathMatch = u.pathname.match(/\/file\/d\/([^/]+)\/(view|preview)?/i);
+  if (pathMatch && pathMatch[1]) {
+    const fileId = pathMatch[1];
+    return `https://drive.google.com/file/d/${fileId}/preview`;
+  }
+
+  // 2) /open?id=FILE_ID
+  if (u.pathname === '/open') {
+    const id = u.searchParams.get('id');
+    if (id) {
+      return `https://drive.google.com/file/d/${id}/preview`;
+    }
+  }
+
+  // 3) /uc?id=FILE_ID or /uc?export=view&id=FILE_ID
+  if (u.pathname === '/uc') {
+    const id = u.searchParams.get('id');
+    if (id) {
+      return `https://drive.google.com/file/d/${id}/preview`;
+    }
+  }
+
+  // If no supported patterns match, return original to avoid breaking non-Drive or edge cases
+  return url;
+}
 
 /**
  * PUBLIC_INTERFACE
- * Checks if a URL belongs to Google Drive file sharing.
- * Supports common variations:
- * - https://drive.google.com/file/d/FILE_ID/view
- * - https://drive.google.com/file/d/FILE_ID/view?usp=share_link
- * - https://drive.google.com/open?id=FILE_ID
- * - https://drive.google.com/uc?id=FILE_ID&export=download
- * - https://drive.google.com/uc?export=view&id=FILE_ID
- *
- * @param {string} url
- * @returns {boolean}
+ * isGoogleDriveUrl checks whether a URL points to Google Drive.
+ * Kept separately for light checks in form flows.
  */
 export function isGoogleDriveUrl(url) {
   if (typeof url !== 'string') return false;
   try {
     const u = new URL(url);
-    return /(^|\.)drive\.google\.com$/.test(u.hostname);
+    return /(^|\.)drive\.google\.com$/i.test(u.hostname);
   } catch {
     return false;
   }
@@ -28,81 +75,14 @@ export function isGoogleDriveUrl(url) {
 
 /**
  * PUBLIC_INTERFACE
- * Extracts the FILE_ID from supported Google Drive URL formats.
- * @param {string} url
- * @returns {string|null} FILE_ID or null if not found
- */
-export function extractDriveFileId(url) {
-  if (!isGoogleDriveUrl(url)) return null;
-  try {
-    const u = new URL(url);
-
-    // 1) /file/d/FILE_ID/(view|preview)
-    const pathMatch = u.pathname.match(/\/file\/d\/([^/]+)\/(view|preview)?/i);
-    if (pathMatch && pathMatch[1]) {
-      return pathMatch[1];
-    }
-
-    // 2) /open?id=FILE_ID
-    if (u.pathname === '/open') {
-      const id = u.searchParams.get('id');
-      if (id) return id;
-    }
-
-    // 3) /uc?id=FILE_ID or /uc?export=view&id=FILE_ID
-    if (u.pathname === '/uc') {
-      const id = u.searchParams.get('id');
-      if (id) return id;
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * PUBLIC_INTERFACE
- * Normalizes a Google Drive URL to preview format:
- * https://drive.google.com/file/d/FILE_ID/preview
- *
- * If the URL is not a Drive URL or FILE_ID cannot be parsed, the original URL is returned
- * unless strict is true, in which case null is returned.
- *
- * @param {string} url
- * @param {object} [options]
- * @param {boolean} [options.strict=false] - when true, returns null if not a recognizable Drive URL
- * @returns {string|null}
- */
-export function normalizeDriveUrl(url, options = {}) {
-  const { strict = false } = options;
-  if (typeof url !== 'string') return strict ? null : url;
-
-  const fileId = extractDriveFileId(url);
-  if (!fileId) {
-    return strict ? null : url;
-  }
-  return `https://drive.google.com/file/d/${fileId}/preview`;
-}
-
-/**
- * PUBLIC_INTERFACE
- * Produces an embeddable URL for supported providers.
- * Currently supports Google Drive by returning the preview URL.
- * For other providers, returns null to indicate fallback to a regular link.
- *
- * @param {string} url
- * @returns {string|null}
+ * toEmbedUrl converts known provider URLs to embeddable versions.
+ * For Drive we delegate to convertDriveLink. Returns null if unchanged from
+ * original and not embeddable (used to branch UI to a simple link).
  */
 export function toEmbedUrl(url) {
   if (typeof url !== 'string') return null;
-
-  // Google Drive
-  if (isGoogleDriveUrl(url)) {
-    const norm = normalizeDriveUrl(url, { strict: true });
-    return norm; // may be null if failed
-  }
-
-  // Other providers can be added here (YouTube, Vimeo, etc.)
-  return null;
+  const converted = convertDriveLink(url);
+  // If conversion didn't change anything and it's not a Drive URL, no embed
+  if (converted === url && !isGoogleDriveUrl(url)) return null;
+  return converted;
 }

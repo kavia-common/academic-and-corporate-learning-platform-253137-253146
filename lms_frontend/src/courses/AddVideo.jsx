@@ -5,7 +5,7 @@ import { addCourseVideo, listCourseVideos, fetchCourseById } from '../supabase';
 import { Card, CardBody, CardHeader, CardFooter } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { normalizeDriveUrl, toEmbedUrl, isGoogleDriveUrl } from '../utils/videoUrl';
+import { convertDriveLink, toEmbedUrl, isGoogleDriveUrl } from '../utils/videoUrl';
 
 // PUBLIC_INTERFACE
 /**
@@ -66,8 +66,11 @@ export default function AddVideo() {
     // Normalize Google Drive URLs; keep non-Drive URLs as-is.
     let urlToSave = rawUrl;
     if (isGoogleDriveUrl(rawUrl)) {
-      const normalized = normalizeDriveUrl(rawUrl, { strict: true });
-      if (!normalized) {
+      const normalized = convertDriveLink(rawUrl);
+      // If conversion didn't change and it's still a Drive URL without /file/d/.../preview, treat as unrecognized
+      const unchanged = normalized === rawUrl;
+      const looksPreview = /https:\/\/drive\.google\.com\/file\/d\/[^/]+\/preview/i.test(normalized);
+      if (unchanged || !looksPreview) {
         setErr('That Google Drive link is not recognized. Please ensure it looks like https://drive.google.com/file/d/FILE_ID/view');
         return;
       }

@@ -4,7 +4,7 @@ import { enrollInCourse, fetchCourseById as getCourseById, listCourseVideos, add
 import { useAuth } from '../auth/AuthProvider';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { normalizeDriveUrl, toEmbedUrl, isGoogleDriveUrl } from '../utils/videoUrl';
+import { convertDriveLink, toEmbedUrl, isGoogleDriveUrl } from '../utils/videoUrl';
 
 /**
  * PUBLIC_INTERFACE
@@ -156,10 +156,13 @@ export default function CourseDetail() {
                     try {
                       setAddingVideo(true);
                       // Normalize Google Drive URLs before saving; keep others unchanged
+                      // Supported patterns: /file/d/ID/view, /open?id=ID, /uc?id=ID
                       let urlToSave = url;
                       if (isGoogleDriveUrl(url)) {
-                        const normalized = normalizeDriveUrl(url, { strict: true });
-                        if (!normalized) {
+                        const normalized = convertDriveLink(url);
+                        const unchanged = normalized === url;
+                        const looksPreview = /https:\/\/drive\.google\.com\/file\/d\/[^/]+\/preview/i.test(normalized);
+                        if (unchanged || !looksPreview) {
                           throw new Error('That Google Drive link is not recognized. Please ensure it looks like https://drive.google.com/file/d/FILE_ID/view');
                         }
                         urlToSave = normalized;
