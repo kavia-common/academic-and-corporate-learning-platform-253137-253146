@@ -42,18 +42,12 @@ export function HomePage() {
   const notice = location.state?.notice;
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1 className="text-2xl font-semibold">Home</h1>
-      {notice ? <p style={{ marginTop: 12, color: 'var(--text-secondary)' }}>{notice}</p> : null}
-      <nav style={{ marginTop: 16, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-        <Link className="link" to="/dashboard">Dashboard</Link>
-        <Link className="link" to="/admin">Admin</Link>
-
-        <Link className="link" to="/courses">Courses</Link>
-        <Link className="link" to="/quizzes">Quizzes</Link>
-        <Link className="link" to="/login">Sign in</Link>
-        <Link className="link" to="/signup">Sign up</Link>
-      </nav>
+    <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
+      <h1 className="text-2xl font-semibold">Welcome</h1>
+      {notice ? (
+        <p style={{ marginTop: 12, color: 'var(--color-muted)' }}>{notice}</p>
+      ) : null}
+      {/* Secondary navigation removed per UI cleanup requirements */}
     </div>
   );
 }

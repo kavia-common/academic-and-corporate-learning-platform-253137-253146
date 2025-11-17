@@ -54,12 +54,10 @@ export default function Sidebar({ items = [], onNavigate }) {
       .toUpperCase() || 'U';
 
   const defaultItems = [
-    { label: 'Home', to: '/' },
     ...(isAuthed ? [{ label: 'Dashboard', to: '/dashboard' }] : []),
     { label: 'Courses', to: '/courses' },
     { label: 'Quizzes', to: '/quizzes' },
     ...(isAuthed && r === 'student' ? [{ label: 'My Assignments', to: '/assignments' }] : []),
-
     ...(isAuthed ? [{ label: 'Profile', to: '/profile' }] : []),
     ...(isAuthed && r === 'admin' ? [{ label: 'Admin', to: '/admin', roles: ['admin'] }] : []),
   ];
