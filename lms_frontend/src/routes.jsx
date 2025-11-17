@@ -37,6 +37,7 @@ import StudentDashboard from './dashboards/StudentDashboard';
 
 import Paths from './pages/Paths';
 import PathDetail from './pages/PathDetail';
+import LearningPath from './pages/LearningPath';
 
 // PUBLIC_INTERFACE
 export function HomePage() {
@@ -100,6 +101,7 @@ export default function ApplicationRoutes() {
       {/* Public course/quiz views (backend-driven full courses) */}
       <Route path="/courses" element={<Paths />} />
       <Route path="/courses/:id" element={<PathDetail />} />
+      <Route path="/learning-path" element={<LearningPath />} />
       <Route path="/quizzes" element={<QuizList />} />
       <Route path="/quizzes/:id" element={<QuizDetail />} />
       <Route path="/quizzes/:id/take" element={<QuizTake />} />

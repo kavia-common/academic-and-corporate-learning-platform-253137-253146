@@ -42,3 +42,70 @@ export const SKILL_TAGS = [
   "REST", "SQL", "PostgreSQL", "DB Design", "Auth", "JWT", "RBAC",
   "MongoDB", "Animations", "Responsive", "Testing", "Cypress", "Accessibility", "SPA"
 ];
+
+/**
+ * PUBLIC_INTERFACE
+ * learningPath: Aggregated Full Web Development Learning Path with all included course groups and their lessons.
+ * NOTE: Populate lessons arrays with the provided datasets (React, JavaScript, HTML, CSS, Python, Django, SQL).
+ * Each lesson object shape:
+ *   { title, thumbnail, duration, video_url, course_id }
+ */
+export const learningPath = {
+  id: 'full_web_dev',
+  title: 'Full Web Development Learning Path',
+  description:
+    'A comprehensive sequence combining React, JavaScript, HTML, CSS, Python, Django, and SQL lessons in one guided path.',
+  cover:
+    'https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1600&auto=format&fit=crop',
+  courses: [
+    {
+      key: 'course_react',
+      title: 'React',
+      lessons: [
+        // Insert provided React lessons here
+      ],
+    },
+    {
+      key: 'course_js',
+      title: 'JavaScript',
+      lessons: [
+        // Insert provided JavaScript lessons here
+      ],
+    },
+    {
+      key: 'course_html',
+      title: 'HTML',
+      lessons: [
+        // Insert provided HTML lessons here
+      ],
+    },
+    {
+      key: 'course_css',
+      title: 'CSS',
+      lessons: [
+        // Insert provided CSS lessons here
+      ],
+    },
+    {
+      key: 'course_python',
+      title: 'Python',
+      lessons: [
+        // Insert provided Python lessons here
+      ],
+    },
+    {
+      key: 'course_django',
+      title: 'Django',
+      lessons: [
+        // Insert provided Django lessons here
+      ],
+    },
+    {
+      key: 'course_sql',
+      title: 'SQL',
+      lessons: [
+        // Insert provided SQL lessons here
+      ],
+    },
+  ],
+};

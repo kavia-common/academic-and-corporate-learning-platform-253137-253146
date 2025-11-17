@@ -56,6 +56,7 @@ export default function Sidebar({ items = [], onNavigate }) {
   const defaultItems = [
     ...(isAuthed ? [{ label: 'Dashboard', to: '/dashboard' }] : []),
     { label: 'Courses', to: '/courses' },
+    { label: 'Learning Path', to: '/learning-path' },
     { label: 'Quizzes', to: '/quizzes' },
     ...(isAuthed && r === 'student' ? [{ label: 'My Assignments', to: '/assignments' }] : []),
     ...(isAuthed ? [{ label: 'Profile', to: '/profile' }] : []),

@@ -27,10 +27,13 @@ function App() {
           <ApplicationRoutes />
         </Container>
 
-        {/* Quick access link to Courses */}
-        <div className="px-4 py-2">
-          <Link to="/courses" className="nav-link text-blue-600 hover:underline">
+        {/* Quick access links */}
+        <div className="px-4 py-2 flex items-center gap-4">
+          <Link to="/courses" className="nav-link text-blue-600 hover:underline" aria-label="Browse Courses">
             Browse Courses
+          </Link>
+          <Link to="/learning-path" className="nav-link text-blue-600 hover:underline" aria-label="Learning Path">
+            Learning Path
           </Link>
         </div>
       </BrowserRouter>
