@@ -31,10 +31,31 @@ export default function Sidebar({ onNavigate }) {
       </div>
 
       <ul className="nav" role="list" style={{ display: 'grid', gap: 6 }}>
-        {/* Top group: only Dashboard. Admin must NOT appear here. */}
+        {/* Top group: Home + (if authed) Dashboard. Admin must NOT appear here. */}
+        <li>
+          <NavLink
+            to="/"
+            onClick={onNavigate}
+            className={linkClass}
+            end
+            aria-label="Home"
+            title="Home"
+          >
+            <span aria-hidden>🏠</span>
+            <span>Home</span>
+          </NavLink>
+        </li>
+
         {isAuthed && (
           <li>
-            <NavLink to="/dashboard" onClick={onNavigate} className={linkClass} end>
+            <NavLink
+              to="/dashboard"
+              onClick={onNavigate}
+              className={linkClass}
+              end
+              aria-label="Dashboard"
+              title="Dashboard"
+            >
               <span aria-hidden>📊</span>
               <span>Dashboard</span>
             </NavLink>
@@ -43,7 +64,13 @@ export default function Sidebar({ onNavigate }) {
 
         {/* Remaining navigation (ordered): Courses, Quizzes, role-specific ... */}
         <li>
-          <NavLink to="/courses" onClick={onNavigate} className={linkClass}>
+          <NavLink
+            to="/courses"
+            onClick={onNavigate}
+            className={linkClass}
+            aria-label="Courses"
+            title="Courses"
+          >
             <span aria-hidden>🎓</span>
             <span>Courses</span>
           </NavLink>
