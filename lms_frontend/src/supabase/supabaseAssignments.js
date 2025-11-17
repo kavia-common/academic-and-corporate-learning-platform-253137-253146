@@ -41,12 +41,16 @@ export async function fetchAssignmentById(id) {
 // PUBLIC_INTERFACE
 /** Create a new assignment. */
 export async function createAssignment(assignment) {
-  const required = { title: 'string', description: 'string', course_id: 'string', due_date: 'string' };
+  const required = { title: 'string', description: 'string', course_id: 'string' };
   const valid = validatePayload(required, assignment || {});
   if (!valid.ok) return valid;
 
+  const payload = {
+    ...assignment,
+    due_date: assignment?.due_date || null,
+  };
   return safeExec(async () => {
-    const { data, error } = await supabase.from('assignments').insert(assignment).select().single();
+    const { data, error } = await supabase.from('assignments').insert(payload).select().single();
     return { data, error };
   }, 'ASSIGNMENT_CREATE_FAILED', 400);
 }

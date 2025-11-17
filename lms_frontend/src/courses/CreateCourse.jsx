@@ -37,7 +37,7 @@ export default function CreateCourse() {
   const [err, setErr] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  if (!isAuthed || !(r === 'instructor' || r === 'admin')) {
+  if (!isAuthed || !(r === 'admin')) {
     return (
       <div className="p-6">
         <Card>
@@ -70,7 +70,7 @@ export default function CreateCourse() {
         title,
         description: form.description || '',
         video_url: String(form.video_url || '').trim() || null,
-        instructor_id: user?.id,
+        created_by: user?.id || null,
       };
 
       const created = await createCourseService(payload);

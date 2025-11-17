@@ -1,8 +1,8 @@
-/**
- * Users service for Supabase with robust validation and error handling.
- * This module provides CRUD operations on the "users" profile table (not auth.users)
- * and selected helpers that interact with Supabase Auth for sign-in/up flows.
- */
+ /**
+  * Users service for Supabase with robust validation and error handling.
+  * This module provides CRUD operations on the "users" profile table (not auth.users)
+  * and selected helpers that interact with Supabase Auth for sign-in/up flows.
+  */
 
 import { supabase } from './client';
 import { safeExec, shapeError, validatePayload, buildRange } from './utils';
@@ -12,7 +12,7 @@ import { safeExec, shapeError, validatePayload, buildRange } from './utils';
 const USER_SCHEMA = {
   id: 'string',              // UUID - required for updates/deletes
   email: 'string',           // unique email
-  role: 'string',            // 'admin' | 'instructor' | 'student'
+  role: 'string',            // 'admin' | 'student'
   full_name: 'string',       // display name
   // avatar_url optional in create/update: we treat as 'any'
 };
@@ -29,6 +29,7 @@ function ensureClient() {
 
 // PUBLIC_INTERFACE
 /**
+ * PUBLIC_INTERFACE
  * Create a user profile record in "users" table.
  * Note: Supabase Auth user creation is separate (handled during sign up).
  * @param {{email:string, role:string, full_name:string, avatar_url?:string}} payload
@@ -50,6 +51,7 @@ export async function createUser(payload) {
 
 // PUBLIC_INTERFACE
 /**
+ * PUBLIC_INTERFACE
  * Get a user profile by id.
  * @param {string} id
  */
@@ -68,6 +70,7 @@ export async function getUserById(id) {
 
 // PUBLIC_INTERFACE
 /**
+ * PUBLIC_INTERFACE
  * Get a user profile by email.
  * @param {string} email
  */
@@ -85,6 +88,7 @@ export async function getUserByEmail(email) {
 
 // PUBLIC_INTERFACE
 /**
+ * PUBLIC_INTERFACE
  * List users with optional filters and pagination.
  * @param {{role?: string, search?: string, page?: number, pageSize?: number}} options
  */
@@ -109,6 +113,7 @@ export async function listUsers(options = {}) {
 
 // PUBLIC_INTERFACE
 /**
+ * PUBLIC_INTERFACE
  * Update a user profile by id.
  * @param {string} id
  * @param {{email?:string, role?:string, full_name?:string, avatar_url?:string}} patch
@@ -139,6 +144,7 @@ export async function updateUser(id, patch) {
 
 // PUBLIC_INTERFACE
 /**
+ * PUBLIC_INTERFACE
  * Delete a user profile by id.
  * Note: This does not delete the Supabase Auth user.
  * @param {string} id
@@ -159,6 +165,7 @@ export async function deleteUser(id) {
 
 // PUBLIC_INTERFACE
 /**
+ * PUBLIC_INTERFACE
  * Update current auth user's password via Supabase Auth.
  * @param {string} newPassword
  */
@@ -177,6 +184,7 @@ export async function updatePassword(newPassword) {
 
 // PUBLIC_INTERFACE
 /**
+ * PUBLIC_INTERFACE
  * Get the current authenticated user from Supabase Auth session.
  */
 export async function getCurrentAuthUser() {
@@ -189,6 +197,7 @@ export async function getCurrentAuthUser() {
   }, 'AUTH_USER_FETCH_FAILED', 401);
 }
 
+// PUBLIC_INTERFACE
 /**
  * PUBLIC_INTERFACE
  * Get counts used by admin dashboard (users, courses, assignments, quizzes).
@@ -220,6 +229,7 @@ export async function getAdminCounts() {
   }, 'ADMIN_COUNTS_FAILED', 400);
 }
 
+// PUBLIC_INTERFACE
 /**
  * PUBLIC_INTERFACE
  * List recent items across key tables for admin dashboard.
@@ -250,79 +260,7 @@ export async function listRecentItems(options = {}) {
   }, 'ADMIN_LIST_RECENT_FAILED', 400);
 }
 
-/**
- * PUBLIC_INTERFACE
- * getInstructorCounts - Aggregated metrics for a given instructor.
- * @param {string} instructorId
- * @returns {Promise<{ok:true,data:{courses:number,enrollments:number,assignments:number,quizzes:number,attempts:number}}|{ok:false,error:any}>}
- */
-export async function getInstructorCounts(instructorId) {
-  const ready = ensureClient();
-  if (!ready.ok) return ready;
-  if (!instructorId || typeof instructorId !== 'string') {
-    return shapeError(new Error('instructorId is required'), 'VALIDATION_ERROR', 400);
-  }
-
-  return safeExec(async () => {
-    const [
-      { count: coursesCount, error: cErr },
-      { count: enrollCount, error: eErr },
-      { count: assignmentsCount, error: aErr },
-      { count: quizzesCount, error: qErr },
-      { count: attemptsCount, error: tErr },
-    ] = await Promise.all([
-      supabase.from('courses').select('id', { count: 'exact', head: true }).eq('instructor_id', instructorId),
-      supabase.from('enrollments').select('id', { count: 'exact', head: true }).eq('instructor_id', instructorId),
-      supabase.from('assignments').select('id', { count: 'exact', head: true }).eq('instructor_id', instructorId),
-      supabase.from('quizzes').select('id', { count: 'exact', head: true }).eq('instructor_id', instructorId),
-      supabase.from('quiz_attempts').select('id', { count: 'exact', head: true }).eq('instructor_id', instructorId),
-    ]);
-
-    const error = cErr || eErr || aErr || qErr || tErr || null;
-    return {
-      data: {
-        courses: coursesCount ?? 0,
-        enrollments: enrollCount ?? 0,
-        assignments: assignmentsCount ?? 0,
-        quizzes: quizzesCount ?? 0,
-        attempts: attemptsCount ?? 0,
-      },
-      error,
-    };
-  }, 'INSTRUCTOR_COUNTS_FAILED', 400);
-}
-
-/**
- * PUBLIC_INTERFACE
- * listRecentItems (instructor scope) - recent courses/quizzes/assignments owned by instructor.
- * @param {{role:'instructor', userId:string, limit?:number}} options
- */
-export async function listRecentItemsForInstructor(options = {}) {
-  const { userId, limit: rawLimit } = options || {};
-  const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(20, rawLimit) : 5;
-
-  const ready = ensureClient();
-  if (!ready.ok) return ready;
-  if (!userId || typeof userId !== 'string') {
-    return shapeError(new Error('userId is required'), 'VALIDATION_ERROR', 400);
-  }
-
-  return safeExec(async () => {
-    const [
-      { data: courses, error: cErr },
-      { data: quizzes, error: qErr },
-      { data: assignments, error: aErr },
-    ] = await Promise.all([
-      supabase.from('courses').select('*').eq('instructor_id', userId).order('created_at', { ascending: false }).limit(limit),
-      supabase.from('quizzes').select('*').eq('instructor_id', userId).order('created_at', { ascending: false }).limit(limit),
-      supabase.from('assignments').select('*').eq('instructor_id', userId).order('created_at', { ascending: false }).limit(limit),
-    ]);
-
-    const error = cErr || qErr || aErr || null;
-    return { data: { courses: courses || [], quizzes: quizzes || [], assignments: assignments || [] }, error };
-  }, 'INSTRUCTOR_LIST_RECENT_FAILED', 400);
-}
-
+// PUBLIC_INTERFACE
 /**
  * PUBLIC_INTERFACE
  * getStudentCounts - Aggregated metrics for a given student/user.

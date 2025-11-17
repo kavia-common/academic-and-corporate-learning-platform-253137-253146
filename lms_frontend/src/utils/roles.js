@@ -9,7 +9,6 @@
  */
 export const ROLE = Object.freeze({
   ADMIN: 'admin',
-  INSTRUCTOR: 'instructor',
   STUDENT: 'student',
 });
 
@@ -43,9 +42,16 @@ export function canAccess(path, role) {
   // Admin: full access.
   if (role === ROLE.ADMIN) return true;
 
-  // Instructor areas
-  if (path.startsWith('/instructor') || path.startsWith('/quizzes') || path.startsWith('/assignments')) {
-    return role === ROLE.INSTRUCTOR || role === ROLE.ADMIN;
+  // Creation/management areas are admin only
+  if (
+    path.startsWith('/courses/new') ||
+    path.startsWith('/courses/create') ||
+    path.startsWith('/courses/') && path.endsWith('/edit') ||
+    path.startsWith('/courses/') && path.includes('/assignments/new') ||
+    path.startsWith('/assignments/') && path.endsWith('/submissions') ||
+    path.startsWith('/quizzes/new')
+  ) {
+    return role === ROLE.ADMIN;
   }
 
   // Student areas

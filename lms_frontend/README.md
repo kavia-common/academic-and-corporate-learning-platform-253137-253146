@@ -48,10 +48,9 @@ Note on Vite variables:
 
 ## Roles and Access
 
-The app supports three roles which are derived from Supabase user.user_metadata.role. If not present, the role defaults to student.
+The app supports two roles derived from Supabase user.user_metadata.role. If not present, the role defaults to student.
 
-- Admin: Full administrative access. Accesses /dashboard/admin and /admin.
-- Instructor: Course and content management. Accesses /dashboard/instructor and /instructor. Can create/edit courses, assignments, and quizzes.
+- Admin: Full administrative access. Accesses /dashboard/admin and /admin. Can create/edit courses, assignments, and quizzes.
 - Student: Learner access to enrollments, assignments, and quizzes. Accesses /dashboard/student.
 
 Role resolution occurs in src/auth/AuthProvider.js. Route protections are implemented via:
@@ -67,9 +66,8 @@ Primary navigation is defined in:
 Key routes:
 - Public: /, /courses, /courses/:id, /quizzes, /quizzes/:id, /quizzes/:id/take, /login, /signup, /reset-password, /verify-email
 - Protected (any authenticated user): /dashboard, /profile
-- Role redirects: /dashboard routes to /dashboard/{admin|instructor|student} based on role
-- Admin: /dashboard/admin, /admin
-- Instructor: /dashboard/instructor, /instructor, /courses/new, /courses/:id/edit, /courses/:courseId/assignments/new, /assignments/:id/submissions, /quizzes/new, /courses/:courseId/quizzes/new
+- Role redirects: /dashboard routes to /dashboard/{admin|student} based on role
+- Admin: /dashboard/admin, /admin, /courses/new, /courses/:id/edit, /courses/:courseId/assignments/new, /assignments/:id/submissions, /quizzes/new, /courses/:courseId/quizzes/new
 - Student: /dashboard/student, /assignments
 
 ## Implemented Features
@@ -78,13 +76,13 @@ Key routes:
   - Sign in, sign up, sign out, and password reset via Supabase (src/auth and src/supabase/client.js).
   - Email verification flow supported through Supabase if enabled.
 - Courses:
-  - List, view course detail, create and edit (instructor/admin) (src/courses/* and src/routes.jsx).
+  - List, view course detail, create and edit (admin only) (src/courses/* and src/routes.jsx).
   - Enrollment actions handled in course detail.
 - Assignments:
   - List and detail pages for assignments (public views; submission gated in components).
   - Create assignments (instructor/admin) and list submissions (src/assignments/*).
 - Quizzes:
-  - List, create (instructor/admin), detail, and take quiz (src/quizzes/*).
+  - List, create (admin only), detail, and take quiz (src/quizzes/*).
   - Attempts management handled in quiz components and services.
 - Profile with avatar:
   - The Profile page renders editable basic fields.
@@ -106,8 +104,7 @@ Tables and typical columns expected by service modules (adjust to your schema as
 Row Level Security (RLS) notes:
 - Enable RLS on all tables and add policies that align with roles:
   - Students: read courses, see and create their own submissions/attempts.
-  - Instructors: manage content for courses they own (courses, assignments, quizzes, questions) and view submissions for their courses.
-  - Admins: broad read/write for administration.
+  - Admins: broad read/write for administration and content management.
 - Ensure user metadata contains user_metadata.role so the frontend can route and gate features correctly.
 
 Authentication:

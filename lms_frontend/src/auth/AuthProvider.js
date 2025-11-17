@@ -45,7 +45,7 @@ export function AuthProvider({ children }) {
     const meta = u.user_metadata || {};
     const r = meta.role;
     // Accept only known roles, default to 'student'
-    const allowed = new Set(['admin', 'instructor', 'student']);
+    const allowed = new Set(['admin', 'student']);
     if (typeof r === 'string' && allowed.has(r.toLowerCase())) {
       return r.toLowerCase();
     }

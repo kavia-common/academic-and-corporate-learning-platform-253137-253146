@@ -24,7 +24,7 @@ export default function AssignmentCreate() {
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
 
-  if (!isAuthed || !(r === 'instructor' || r === 'admin')) {
+  if (!isAuthed || r !== 'admin') {
     return (
       <div style={{ padding: 24 }}>
         <div className="card" style={{ padding: 16 }}>

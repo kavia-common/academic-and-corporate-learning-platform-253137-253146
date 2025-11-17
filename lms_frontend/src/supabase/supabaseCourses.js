@@ -47,17 +47,17 @@ export async function fetchCourseById(id) {
 // PUBLIC_INTERFACE
 /** Create a new course. */
 export async function createCourse(course) {
-  // Validate required fields only: title, instructor_id
-  const required = { title: 'string', instructor_id: 'string' };
+  // Validate required fields only: title
+  const required = { title: 'string' };
   const valid = validatePayload(required, course || {});
   if (!valid.ok) return valid;
 
-  // Normalize optional fields
+  // Normalize fields; created_by used for admin ownership context
   const payload = {
     title: course.title,
-    instructor_id: course.instructor_id,
     description: typeof course.description === 'string' ? course.description : null,
     video_url: course.video_url ? String(course.video_url) : null,
+    created_by: course.created_by || null,
   };
 
   return safeExec(async () => {

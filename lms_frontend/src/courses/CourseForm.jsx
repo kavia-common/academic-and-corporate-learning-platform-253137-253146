@@ -39,7 +39,7 @@ export default function CourseForm() {
           setErr('');
           const data = await getCourseById(id);
           if (!mounted) return;
-          if (!(r === 'admin' || (r === 'instructor' && data.instructor_id === user?.id))) {
+          if (r !== 'admin') {
             navigate('/courses', { replace: true, state: { notice: 'You do not have permission to edit this course.' } });
             return;
           }
@@ -55,7 +55,7 @@ export default function CourseForm() {
     return () => { mounted = false; };
   }, [editing, id, navigate, r, user]);
 
-  if (!isAuthed || !(r === 'instructor' || r === 'admin')) {
+  if (!isAuthed || r !== 'admin') {
     return (
       <div className="p-6">
         <Card>
@@ -85,7 +85,7 @@ export default function CourseForm() {
         await updateCourse(id, { title, description: form.description, video_url: form.video_url || null });
         navigate(`/courses/${id}`, { replace: true });
       } else {
-        const created = await createCourse({ title, description: form.description, video_url: form.video_url || null, instructor_id: user?.id });
+        const created = await createCourse({ title, description: form.description, video_url: form.video_url || null, created_by: user?.id || null });
         navigate(`/courses/${created.id}`, { replace: true });
       }
     } catch (e2) {

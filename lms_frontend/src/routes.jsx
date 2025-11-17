@@ -31,7 +31,7 @@ import QuizTake from './quizzes/QuizTake';
 
 // Dashboards
 import AdminDashboard from './dashboards/AdminDashboard';
-import InstructorDashboard from './dashboards/InstructorDashboard';
+
 import StudentDashboard from './dashboards/StudentDashboard';
 
 // PUBLIC_INTERFACE
@@ -47,7 +47,7 @@ export function HomePage() {
       <nav style={{ marginTop: 16, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         <Link className="link" to="/dashboard">Dashboard</Link>
         <Link className="link" to="/admin">Admin</Link>
-        <Link className="link" to="/instructor">Instructor</Link>
+
         <Link className="link" to="/courses">Courses</Link>
         <Link className="link" to="/quizzes">Quizzes</Link>
         <Link className="link" to="/login">Sign in</Link>
@@ -68,7 +68,6 @@ function RoleDashboardRouter() {
   const { role } = useAuth();
   const r = String(role || '').toLowerCase();
   if (r === 'admin') return <Navigate to="/dashboard/admin" replace />;
-  if (r === 'instructor') return <Navigate to="/dashboard/instructor" replace />;
   return <Navigate to="/dashboard/student" replace />;
 }
 
@@ -111,11 +110,7 @@ export default function ApplicationRoutes() {
           <Route path="/admin" element={<AdminDashboard />} />
         </Route>
 
-        {/* Instructor */}
-        <Route element={<RoleRoute allowedRoles={['instructor']} />}>
-          <Route path="/dashboard/instructor" element={<InstructorDashboard />} />
-          <Route path="/instructor" element={<InstructorDashboard />} />
-        </Route>
+
 
         {/* Student */}
         <Route element={<RoleRoute allowedRoles={['student']} />}>
@@ -126,8 +121,8 @@ export default function ApplicationRoutes() {
         {/* Shared protected */}
         <Route path="/profile" element={<ProfilePage />} />
 
-        {/* Instructor/admin management */}
-        <Route element={<RoleRoute allowedRoles={['instructor', 'admin']} />}>
+        {/* Admin management only */}
+        <Route element={<RoleRoute allowedRoles={['admin']} />}>
           <Route path="/courses/new" element={<CourseForm />} />
           <Route path="/courses/create" element={<CreateCourse />} />
           <Route path="/courses/:id/edit" element={<CourseForm />} />
