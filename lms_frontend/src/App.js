@@ -12,6 +12,9 @@ import { AuthProvider } from './auth/AuthContext';
 import ProtectedRoute from './auth/ProtectedRoute';
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
+import CourseDetail from './pages/CourseDetail';
+import AssignmentDetail from './pages/AssignmentDetail';
+import MyProgress from './pages/MyProgress';
 
 /**
  * PUBLIC_INTERFACE
@@ -19,6 +22,10 @@ import Signup from './pages/auth/Signup';
  * with Ocean Professional visual style. Provides pages for Dashboard,
  * Courses, Users, Assignments, Progress, and Healthcheck. Adds Supabase Auth
  * with session persistence, protected routes, and auth pages.
+ * New protected routes:
+ * - /courses/:id (Course detail with tabs)
+ * - /assignments/:id (Assignment detail & submissions)
+ * - /me/progress (My progress view)
  */
 function App() {
   return (
@@ -42,6 +49,14 @@ function App() {
               }
             />
             <Route
+              path="/courses/:id"
+              element={
+                <ProtectedRoute>
+                  <CourseDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/users"
               element={
                 <ProtectedRoute>
@@ -58,10 +73,26 @@ function App() {
               }
             />
             <Route
+              path="/assignments/:id"
+              element={
+                <ProtectedRoute>
+                  <AssignmentDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/progress"
               element={
                 <ProtectedRoute>
                   <Progress />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/me/progress"
+              element={
+                <ProtectedRoute>
+                  <MyProgress />
                 </ProtectedRoute>
               }
             />
