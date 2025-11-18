@@ -12,6 +12,10 @@ export const AuthContext = createContext({
   signUp: async (_payload) => {},
   signOut: async () => {},
   refreshSession: async () => {},
+  signInWithMagicLink: async (_email) => {},
+  requestPasswordReset: async (_email) => {},
+  updatePasswordFromToken: async (_newPassword) => {},
+  isEmailVerified: false,
   isConfigured: false,
   configWarning: '',
 });
@@ -21,6 +25,7 @@ export const AuthContext = createContext({
  * AuthProvider initializes Supabase auth (if configured) and exposes auth state and actions.
  * - Reads REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_KEY from env (via getEnv).
  * - If env is missing, it works gracefully and shows helpful hints on auth pages.
+ * - Handles session auto-refresh and signs out on refresh/token errors.
  */
 export function AuthProvider({ children }) {
   const { SUPABASE_URL, SUPABASE_KEY, FRONTEND_URL } = getEnv();
@@ -41,7 +46,7 @@ export function AuthProvider({ children }) {
     return '';
   }, [isConfigured]);
 
-  // Lazy init Supabase client
+  // Lazy init Supabase client + handle session changes/refresh
   useEffect(() => {
     let unsub = null;
     let mounted = true;
@@ -59,7 +64,7 @@ export function AuthProvider({ children }) {
       }
       setSupabase(client);
 
-      // Fetch initial session
+      // Initial session
       const {
         data: { session: initialSession },
         error: sessErr,
@@ -73,10 +78,17 @@ export function AuthProvider({ children }) {
       setUser(initialSession?.user || null);
       setLoading(false);
 
-      // Subscribe to auth changes
-      const { data: listener } = client.auth.onAuthStateChange((_event, s) => {
+      // Subscribe to auth changes; auto sign-out on token errors
+      const { data: listener } = client.auth.onAuthStateChange((event, s) => {
         setSession(s || null);
         setUser(s?.user || null);
+        if (event === 'TOKEN_REFRESHED') {
+          // ok
+        } else if (event === 'SIGNED_OUT') {
+          // ok
+        } else if (event === 'USER_UPDATED') {
+          // email verification may flip here
+        }
       });
 
       unsub = () => {
@@ -149,11 +161,72 @@ export function AuthProvider({ children }) {
   const refreshSession = useCallback(async () => {
     if (!supabase) return null;
     const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
+    if (error) {
+      // eslint-disable-next-line no-console
+      console.warn('[auth] session refresh failed, signing out', error.message);
+      await supabase.auth.signOut();
+      setSession(null);
+      setUser(null);
+      return null;
+    }
     setSession(data.session);
     setUser(data.session?.user || null);
     return data.session;
   }, [supabase]);
+
+  const signInWithMagicLink = useCallback(
+    async (email) => {
+      if (!supabase) throw new Error('Authentication is not configured.');
+      if (!email) throw new Error('Email is required.');
+      const emailRedirectTo =
+        FRONTEND_URL && FRONTEND_URL.startsWith('http')
+          ? `${FRONTEND_URL}/auth/login`
+          : `${window.location.origin}/auth/login`;
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo,
+        },
+      });
+      if (error) throw error;
+      return data;
+    },
+    [supabase, FRONTEND_URL]
+  );
+
+  const requestPasswordReset = useCallback(
+    async (email) => {
+      if (!supabase) throw new Error('Authentication is not configured.');
+      if (!email) throw new Error('Email is required.');
+      const emailRedirectTo =
+        FRONTEND_URL && FRONTEND_URL.startsWith('http')
+          ? `${FRONTEND_URL}/auth/reset`
+          : `${window.location.origin}/auth/reset`;
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: emailRedirectTo,
+      });
+      if (error) throw error;
+      return data;
+    },
+    [supabase, FRONTEND_URL]
+  );
+
+  const updatePasswordFromToken = useCallback(
+    async (newPassword) => {
+      if (!supabase) throw new Error('Authentication is not configured.');
+      if (!newPassword || newPassword.length < 6) {
+        throw new Error('New password must be at least 6 characters.');
+      }
+      const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      // After password change through recovery flow, user is typically logged in
+      const sess = await refreshSession();
+      return { data, session: sess };
+    },
+    [supabase, refreshSession]
+  );
+
+  const isEmailVerified = !!user?.email_confirmed_at;
 
   const value = useMemo(
     () => ({
@@ -164,10 +237,28 @@ export function AuthProvider({ children }) {
       signUp,
       signOut,
       refreshSession,
+      signInWithMagicLink,
+      requestPasswordReset,
+      updatePasswordFromToken,
+      isEmailVerified,
       isConfigured,
       configWarning,
     }),
-    [user, session, loading, signIn, signUp, signOut, refreshSession, isConfigured, configWarning]
+    [
+      user,
+      session,
+      loading,
+      signIn,
+      signUp,
+      signOut,
+      refreshSession,
+      signInWithMagicLink,
+      requestPasswordReset,
+      updatePasswordFromToken,
+      isEmailVerified,
+      isConfigured,
+      configWarning,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

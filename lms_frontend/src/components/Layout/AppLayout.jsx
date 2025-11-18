@@ -57,6 +57,8 @@ export default function AppLayout({ children }) {
               <div aria-label="Auth links" style={{ display: 'inline-flex', gap: 12 }}>
                 <Link to="/auth/login" className="topbar__link">Login</Link>
                 <Link to="/auth/signup" className="topbar__link">Sign up</Link>
+                <Link to="/auth/magic" className="topbar__link">Magic link</Link>
+                <Link to="/auth/reset/request" className="topbar__link">Reset</Link>
               </div>
             )
           ) : null}

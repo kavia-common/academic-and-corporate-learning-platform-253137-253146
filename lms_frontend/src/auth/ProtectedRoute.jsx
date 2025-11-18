@@ -6,6 +6,7 @@ import { useAuth } from './AuthContext';
  * PUBLIC_INTERFACE
  * ProtectedRoute ensures that only authenticated users can access the wrapped route.
  * Unauthenticated users are redirected to /auth/login with a redirect back to the original path.
+ * If email is unverified, we still allow access but other pages may show guidance.
  */
 export default function ProtectedRoute({ children }) {
   const { user, loading, isConfigured } = useAuth();
@@ -25,7 +26,8 @@ export default function ProtectedRoute({ children }) {
   }
 
   if (!user) {
-    const redirectTo = `/auth/login?next=${encodeURIComponent(location.pathname + location.search)}`;
+    const current = location.pathname + location.search + location.hash;
+    const redirectTo = `/auth/login?next=${encodeURIComponent(current)}`;
     return <Navigate to={redirectTo} replace />;
   }
 

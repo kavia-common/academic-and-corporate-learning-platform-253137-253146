@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
+import useAuthActions from '../../hooks/useAuthActions';
 
 const styles = {
   page: {
@@ -61,6 +62,13 @@ const styles = {
     marginTop: 12,
     fontSize: 14,
   },
+  rowLinks: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    fontSize: 14,
+    gap: 10,
+  },
   error: {
     color: '#EF4444',
     fontSize: 13,
@@ -75,6 +83,15 @@ const styles = {
     fontSize: 13,
     marginBottom: 12,
   },
+  notice: {
+    background: '#ECFDF5',
+    border: '1px solid #A7F3D0',
+    color: '#065F46',
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 13,
+    marginBottom: 12,
+  },
 };
 
 function useQuery() {
@@ -84,10 +101,11 @@ function useQuery() {
 
 /**
  * PUBLIC_INTERFACE
- * Login page for email/password authentication via Supabase Auth.
+ * Login page for email/password authentication via Supabase Auth with guidance for unverified accounts.
  */
 export default function Login() {
-  const { signIn, isConfigured, configWarning } = useAuth();
+  const { isConfigured, configWarning, isEmailVerified } = useAuth();
+  const { signIn } = useAuthActions();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -110,7 +128,13 @@ export default function Login() {
     try {
       setSubmitting(true);
       await signIn({ email, password });
-      navigate(next, { replace: true });
+      // If user is not email-verified, we still sign in, but show guidance
+      if (!isEmailVerified) {
+        // Navigate but rely on toast; not blocking
+        navigate(next, { replace: true });
+      } else {
+        navigate(next, { replace: true });
+      }
     } catch (err) {
       setError(err?.message || 'Failed to sign in. Please try again.');
     } finally {
@@ -124,6 +148,11 @@ export default function Login() {
         <h1 id="login-title" style={styles.title}>Welcome back</h1>
         <p style={styles.subtitle}>Sign in to continue to the LMS.</p>
         {!isConfigured && <div role="alert" style={styles.hint}>{configWarning}</div>}
+        {!isEmailVerified && (
+          <div role="status" style={styles.notice}>
+            Your email is not verified yet. Check your inbox for a confirmation email.
+          </div>
+        )}
         {error && <div role="alert" style={styles.error}>{error}</div>}
 
         <label htmlFor="email" style={styles.label}>Email</label>
@@ -153,6 +182,15 @@ export default function Login() {
         <button type="submit" style={styles.button} disabled={submitting}>
           {submitting ? 'Signing in…' : 'Sign In'}
         </button>
+
+        <div style={styles.rowLinks}>
+          <Link to="/auth/magic" style={{ color: 'var(--ocn-primary, #2563EB)', fontWeight: 700, textDecoration: 'none' }}>
+            Use magic link
+          </Link>
+          <Link to="/auth/reset/request" style={{ color: 'var(--ocn-primary, #2563EB)', fontWeight: 700, textDecoration: 'none' }}>
+            Forgot password?
+          </Link>
+        </div>
 
         <div style={styles.linkRow}>
           <span />
