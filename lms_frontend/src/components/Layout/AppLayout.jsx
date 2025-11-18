@@ -1,6 +1,7 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import './AppLayout.css';
+import { useAuth } from '../../auth/AuthContext';
 
 /**
  * PUBLIC_INTERFACE
@@ -8,6 +9,17 @@ import './AppLayout.css';
  * Children are rendered in the main area.
  */
 export default function AppLayout({ children }) {
+  const { user, signOut, isConfigured } = useAuth();
+
+  async function onLogout() {
+    try {
+      await signOut();
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn('Logout failed', e?.message);
+    }
+  }
+
   return (
     <div className="app-shell">
       <header className="topbar" role="banner" aria-label="Top application bar">
@@ -21,6 +33,33 @@ export default function AppLayout({ children }) {
         <div className="topbar__spacer" />
         <nav className="topbar__nav" aria-label="Top navigation">
           <NavLink to="/" className="topbar__link">Dashboard</NavLink>
+          {/* Auth menu on the right */}
+          <span style={{ marginLeft: 16 }} />
+          {isConfigured ? (
+            user ? (
+              <div aria-label="User menu" style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ color: '#4B5563', fontSize: 14 }}>{user.email}</span>
+                <button
+                  onClick={onLogout}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid #E5E7EB',
+                    color: '#111827',
+                    padding: '6px 10px',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <div aria-label="Auth links" style={{ display: 'inline-flex', gap: 12 }}>
+                <Link to="/auth/login" className="topbar__link">Login</Link>
+                <Link to="/auth/signup" className="topbar__link">Sign up</Link>
+              </div>
+            )
+          ) : null}
         </nav>
       </header>
 
