@@ -1,8 +1,8 @@
 import React from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import ProtectedRoute from './auth/ProtectedRoute';
 import RoleRoute from './auth/RoleRoute';
-
+import { useAuth } from './auth/AuthProvider';
 
 // Auth pages
 import SignIn from './auth/pages/SignIn';
@@ -64,7 +64,10 @@ export function HomePage() {
   );
 }
 
-
+/* Revert to static reference-only dashboard; no role-based redirect needed. */
+function RoleDashboardRouter() {
+  return <Dashboard />;
+}
 
 /**
  * PUBLIC_INTERFACE

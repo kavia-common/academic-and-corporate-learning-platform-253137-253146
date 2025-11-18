@@ -19,15 +19,8 @@ export default function Dashboard() {
   const altText = 'Dashboard reference view depicting the intended layout and design.';
 
   return (
-    <main className={styles.page} aria-labelledby="dashboard-title" tabIndex={-1}>
+    <main className={styles.page} tabIndex={-1}>
       <section className={styles.container} role="region" aria-label="Dashboard reference">
-        <header className={styles.header}>
-          <h1 id="dashboard-title" className={styles.title}>Dashboard Reference</h1>
-          <p className={styles.caption}>
-            This non-interactive dashboard shows the current design reference.
-          </p>
-        </header>
-
         <div className={styles.surface} role="img" aria-label={altText}>
           <img
             className={styles.referenceImage}
