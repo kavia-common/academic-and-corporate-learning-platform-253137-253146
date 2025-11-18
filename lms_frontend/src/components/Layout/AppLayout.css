@@ -1,0 +1,131 @@
+:root {
+  --ocn-bg-canvas: #F5F7FB;
+  --ocn-surface: #ffffff;
+  --ocn-primary: #2563EB;
+  --ocn-secondary: #F59E0B;
+  --ocn-text: #111827;
+  --ocn-text-muted: #4B5563;
+  --ocn-border: #E5E7EB;
+  --ocn-shadow-1: 0 4px 12px rgba(12, 32, 80, 0.08);
+  --sidebar-width: 220px;
+}
+
+.app-shell {
+  background: var(--ocn-bg-canvas);
+  min-height: 100vh;
+  color: var(--ocn-text);
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(90deg, rgba(37,99,235,0.08), rgba(249,250,251,1));
+  border-bottom: 1px solid var(--ocn-border);
+  padding: 10px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: saturate(150%) blur(4px);
+}
+
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand__logo {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: var(--ocn-primary);
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: var(--ocn-shadow-1);
+}
+
+.brand__title {
+  font-weight: 800;
+  color: var(--ocn-text);
+}
+
+.brand__subtitle {
+  display: block;
+  font-size: 12px;
+  color: var(--ocn-text-muted);
+}
+
+.topbar__spacer {
+  flex: 1;
+}
+
+.topbar__nav .topbar__link {
+  color: var(--ocn-text);
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 16px;
+}
+
+.topbar__link:hover {
+  color: var(--ocn-primary);
+}
+
+.app-body {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  gap: 0;
+  min-height: calc(100vh - 56px);
+}
+
+.sidebar {
+  background: var(--ocn-surface);
+  border-right: 1px solid var(--ocn-border);
+  padding: 16px 12px;
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+}
+
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar__link {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--ocn-text);
+  text-decoration: none;
+  transition: background .2s ease, color .2s ease;
+}
+
+.sidebar__link:hover {
+  background: rgba(37,99,235,0.08);
+  color: var(--ocn-primary);
+}
+
+.sidebar__link.is-active {
+  background: var(--ocn-primary);
+  color: #fff;
+}
+
+.main {
+  padding: 24px;
+}
+
+@media (max-width: 900px) {
+  .app-body {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    position: relative;
+    top: 0;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--ocn-border);
+  }
+}

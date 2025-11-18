@@ -1,82 +1,49 @@
-# Lightweight React Template for KAVIA
+# LMS Frontend (React) – Ocean Professional Shell
 
-This project provides a minimal React template with a clean, modern UI and minimal dependencies.
+This app provides a modern LMS shell with a top app bar, sidebar navigation, and initial pages.
 
 ## Features
 
-- **Lightweight**: No heavy UI frameworks - uses only vanilla CSS and React
-- **Modern UI**: Clean, responsive design with KAVIA brand styling
-- **Fast**: Minimal dependencies for quick loading times
-- **Simple**: Easy to understand and modify
+- Sidebar + top app bar layout matching "Ocean Professional" style
+- Pages: Dashboard, Courses, Users, Assignments, Progress, Healthcheck
+- Central API client using REACT_APP_API_BASE / REACT_APP_BACKEND_URL
+- Feature flags scaffold via REACT_APP_FEATURE_FLAGS (CSV or JSON)
+- Healthcheck route using REACT_APP_HEALTHCHECK_PATH
+- Optional Supabase integration through REACT_APP_SUPABASE_URL/KEY (graceful when undefined)
+- No hardcoded secrets
 
 ## Getting Started
 
-In the project directory, you can run:
+Install and run:
 
-### `npm start`
-
-Runs the app in development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-### `npm test`
-
-Launches the test runner in interactive watch mode.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-## Customization
-
-### Colors
-
-The main brand colors are defined as CSS variables in `src/App.css`:
-
-```css
-:root {
-  --kavia-orange: #E87A41;
-  --kavia-dark: #1A1A1A;
-  --text-color: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --border-color: rgba(255, 255, 255, 0.1);
-}
+```bash
+npm install
+npm start
 ```
 
-### Components
+App: http://localhost:3000
 
-This template uses pure HTML/CSS components instead of a UI framework. You can find component styles in `src/App.css`. 
+## Environment Variables
 
-Common components include:
-- Buttons (`.btn`, `.btn-large`)
-- Container (`.container`)
-- Navigation (`.navbar`)
-- Typography (`.title`, `.subtitle`, `.description`)
+Copy `.env.example` to `.env` and adjust as needed.
 
-## Learn More
+- REACT_APP_API_BASE: Base URL for backend (e.g., https://api.example.com)
+- REACT_APP_BACKEND_URL: Alternative to API base (used if API_BASE not set)
+- REACT_APP_HEALTHCHECK_PATH: Health path (default /healthz)
+- REACT_APP_FEATURE_FLAGS: CSV ("flag1,flag2") or JSON ({"flag":true})
+- REACT_APP_SUPABASE_URL / REACT_APP_SUPABASE_KEY: Optional Supabase config
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Project Structure
 
-### Code Splitting
+- src/components/Layout/AppLayout.jsx – App shell (topbar + sidebar)
+- src/pages/Dashboard.jsx – Ocean Professional dashboard layout
+- src/pages/{Courses,Users,Assignments,Progress}.jsx – placeholders
+- src/pages/Healthcheck.jsx – pings backend health endpoint
+- src/api/client.js – API helpers (GET/POST)
+- src/config/env.js – Env parsing and helpers
+- src/lib/supabase.js – Optional Supabase client (lazy)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Notes
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- The preview system is not modified.
+- If you plan to use Supabase features, install @supabase/supabase-js and set env.
