@@ -1,0 +1,102 @@
+:root {
+  --bg-canvas: #F5F7FB;
+  --text-primary: #0B2B6B;
+  --text-primary-strong: #132D5B;
+  --text-on-surface: #FFFFFF;
+  --text-on-surface-muted: #EDEBFF;
+  --surface-purple: #6A3ECD;
+  --surface-blue: #2E8BEF;
+  --surface-yellow: #FFD553;
+  --accent-green-600: #28C08A;
+  --accent-green-400: #60D6B0;
+  --chart-green-700: #1FB37A;
+  --chart-green-300: #9BE5CC;
+  --sparkline-stroke: rgba(255,255,255,0.9);
+  --shadow-elevation-1: 0 4px 12px rgba(12, 32, 80, 0.08);
+}
+
+.page {
+  background: var(--bg-canvas);
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.h1 {
+  font: 800 28px/32px "Helvetica Neue", Arial, sans-serif;
+  color: var(--text-primary);
+  margin: 0 0 20px;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.kpiCard {
+  min-height: 120px;
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow-elevation-1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.kpiValue {
+  color: var(--text-on-surface);
+  font: 800 32px/36px "Helvetica Neue", Arial, sans-serif;
+  margin-bottom: 4px;
+}
+
+.kpiLabel {
+  color: var(--text-on-surface-muted);
+  font: 600 14px/20px "Helvetica Neue", Arial, sans-serif;
+}
+
+.lowerGrid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.checklistCard {
+  background: var(--surface-yellow);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.checkItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-primary-strong);
+  font: 600 14px/20px "Helvetica Neue", Arial, sans-serif;
+}
+
+.sr-only {
+  position: absolute !important;
+  height: 1px; width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
+  border: 0; padding: 0;
+  margin: -1px;
+}
+
+@media (max-width: 1023px) {
+  .lowerGrid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 767px) {
+  .container { padding: 20px; }
+  .kpiGrid { grid-template-columns: 1fr; gap: 16px; }
+}

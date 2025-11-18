@@ -34,8 +34,7 @@ import QuizDetail from './quizzes/QuizDetail';
 import QuizTake from './quizzes/QuizTake';
 
 // Dashboards
-import AdminDashboard from './dashboards/AdminDashboard';
-import StudentDashboard from './dashboards/StudentDashboard';
+import Dashboard from './dashboards/Dashboard';
 
 // Admin (new client-side demo-only)
 import AdminHome from './admin/AdminHome';
@@ -74,8 +73,8 @@ function RoleDashboardRouter() {
    */
   const { role } = useAuth();
   const r = String(role || '').toLowerCase();
-  if (r === 'admin') return <Navigate to="/dashboard/admin" replace />;
-  return <Navigate to="/dashboard/student" replace />;
+  // All roles land on the same redesigned Dashboard
+  return <Navigate to="/dashboard/main" replace />;
 }
 
 /**
@@ -119,16 +118,13 @@ export default function ApplicationRoutes() {
       <Route element={<ProtectedRoute />}>
         {/* Role-based dashboard landing */}
         <Route path="/dashboard" element={<RoleDashboardRouter />} />
+        <Route path="/dashboard/" element={<RoleDashboardRouter />} />
 
-        {/* Admin-only protected dashboard and admin-dashboard (existing) */}
-        <Route element={<RoleRoute allowedRoles={['admin']} />}>
-          <Route path="/dashboard/admin" element={<AdminDashboard />} />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        </Route>
+        {/* Unified redesigned Dashboard for all roles */}
+        <Route path="/dashboard/main" element={<Dashboard />} />
 
-        {/* Student-only */}
+        {/* Student-only: keep assignments access */}
         <Route element={<RoleRoute allowedRoles={['student']} />}>
-          <Route path="/dashboard/student" element={<StudentDashboard />} />
           <Route path="/assignments" element={<AssignmentList />} />
         </Route>
 
