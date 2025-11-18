@@ -1,8 +1,8 @@
 import React from 'react';
-import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import ProtectedRoute from './auth/ProtectedRoute';
 import RoleRoute from './auth/RoleRoute';
-import { useAuth } from './auth/AuthProvider';
+
 
 // Auth pages
 import SignIn from './auth/pages/SignIn';
@@ -64,18 +64,7 @@ export function HomePage() {
   );
 }
 
-// PUBLIC_INTERFACE
-function RoleDashboardRouter() {
-  /**
-   * Routes authenticated users hitting /dashboard to their role-specific dashboard:
-   * - admin -> /dashboard/admin
-   * - student (default) -> /dashboard/student
-   */
-  const { role } = useAuth();
-  const r = String(role || '').toLowerCase();
-  // All roles land on the same redesigned Dashboard
-  return <Navigate to="/dashboard/main" replace />;
-}
+
 
 /**
  * PUBLIC_INTERFACE
@@ -116,12 +105,9 @@ export default function ApplicationRoutes() {
 
       {/* Protected user routes */}
       <Route element={<ProtectedRoute />}>
-        {/* Role-based dashboard landing */}
-        <Route path="/dashboard" element={<RoleDashboardRouter />} />
-        <Route path="/dashboard/" element={<RoleDashboardRouter />} />
-
-        {/* Unified redesigned Dashboard for all roles */}
-        <Route path="/dashboard/main" element={<Dashboard />} />
+        {/* Static reference-only dashboard */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/" element={<Dashboard />} />
 
         {/* Student-only: keep assignments access */}
         <Route element={<RoleRoute allowedRoles={['student']} />}>

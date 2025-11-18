@@ -1,102 +1,91 @@
-:root {
-  --bg-canvas: #F5F7FB;
-  --text-primary: #0B2B6B;
-  --text-primary-strong: #132D5B;
-  --text-on-surface: #FFFFFF;
-  --text-on-surface-muted: #EDEBFF;
-  --surface-purple: #6A3ECD;
-  --surface-blue: #2E8BEF;
-  --surface-yellow: #FFD553;
-  --accent-green-600: #28C08A;
-  --accent-green-400: #60D6B0;
-  --chart-green-700: #1FB37A;
-  --chart-green-300: #9BE5CC;
-  --sparkline-stroke: rgba(255,255,255,0.9);
-  --shadow-elevation-1: 0 4px 12px rgba(12, 32, 80, 0.08);
-}
-
 .page {
-  background: var(--bg-canvas);
+  /* Ocean Professional app background */
+  background: #f9fafb;
   min-height: 100vh;
+  width: 100%;
+  display: flex;
+  /* If app has a sidebar/topbar, the parent layout will handle positioning.
+     We still center within available main area. */
 }
 
 .container {
-  max-width: 1200px;
+  /* Center content and constrain width */
   margin: 0 auto;
-  padding: 32px 24px;
-}
+  padding: 24px;
+  width: 100%;
+  max-width: 1400px;
 
-.h1 {
-  font: 800 28px/32px "Helvetica Neue", Arial, sans-serif;
-  color: var(--text-primary);
-  margin: 0 0 20px;
-}
-
-.kpiGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-}
-
-.kpiCard {
-  min-height: 120px;
-  border-radius: 12px;
-  padding: 18px 20px;
-  box-shadow: var(--shadow-elevation-1);
-  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
+  gap: 16px;
 }
 
-.kpiValue {
-  color: var(--text-on-surface);
-  font: 800 32px/36px "Helvetica Neue", Arial, sans-serif;
-  margin-bottom: 4px;
-}
-
-.kpiLabel {
-  color: var(--text-on-surface-muted);
-  font: 600 14px/20px "Helvetica Neue", Arial, sans-serif;
-}
-
-.lowerGrid {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 24px;
-  margin-top: 20px;
-}
-
-.checklistCard {
-  background: var(--surface-yellow);
-  border-radius: 12px;
-  padding: 16px 18px;
-}
-
-.checkItem {
+.header {
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  color: #111827; /* text */
+  font-weight: 600;
+}
+
+.caption {
+  margin: 0;
+  color: #4b5563; /* gray-600 */
+  font-size: 0.95rem;
+}
+
+.surface {
+  /* Ocean surface with subtle gradient and shadow */
+  background: linear-gradient(180deg, rgba(59,130,246,0.08), rgba(249,250,251,0.6));
+  border-radius: 12px;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.05),
+    0 4px 14px rgba(37, 99, 235, 0.08); /* primary accent shadow */
+  padding: 16px;
+  display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 10px;
-  color: var(--text-primary-strong);
-  font: 600 14px/20px "Helvetica Neue", Arial, sans-serif;
+
+  /* Ensure this area adapts to viewport height minus header */
+  min-height: calc(100vh - 140px);
 }
 
-.sr-only {
-  position: absolute !important;
-  height: 1px; width: 1px;
-  overflow: hidden;
-  clip: rect(1px, 1px, 1px, 1px);
-  white-space: nowrap;
-  border: 0; padding: 0;
-  margin: -1px;
+.referenceImage {
+  width: 100%;
+  max-width: 1200px; /* fit large screens while staying crisp */
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  background-color: #ffffff; /* surface */
+  border: 1px solid rgba(17,24,39,0.06); /* subtle border */
 }
 
-@media (max-width: 1023px) {
-  .lowerGrid { grid-template-columns: 1fr; }
+/* Focus styles for accessibility */
+.page:focus {
+  outline: none;
 }
 
-@media (max-width: 767px) {
-  .container { padding: 20px; }
-  .kpiGrid { grid-template-columns: 1fr; gap: 16px; }
+.page:focus-visible,
+.container:focus-visible,
+.surface:focus-visible,
+.referenceImage:focus-visible {
+  outline: 2px solid #2563EB; /* primary */
+  outline-offset: 4px;
+}
+
+/* Small screens spacing */
+@media (max-width: 640px) {
+  .container {
+    padding: 16px;
+  }
+  .surface {
+    padding: 12px;
+    min-height: calc(100vh - 120px);
+  }
 }
