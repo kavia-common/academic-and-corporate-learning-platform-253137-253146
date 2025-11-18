@@ -38,6 +38,7 @@ App: http://localhost:3000
    - REACT_APP_SUPABASE_URL
    - REACT_APP_SUPABASE_KEY
    - (optional) REACT_APP_FRONTEND_URL (used for emailRedirectTo; falls back to window.location.origin)
+   - The app will also fall back to SUPABASE_URL/SUPABASE_KEY if the REACT_APP_* variants are not present. For production builds and local CRA dev, using REACT_APP_* is recommended.
 4) Routes:
    - Public: `/`, `/health`, `/auth/login`, `/auth/signup`
    - Protected: `/courses`, `/courses/:id`, `/assignments/:id`, `/users`, `/progress`, `/me/progress`
@@ -45,6 +46,13 @@ App: http://localhost:3000
    - Shows a non-blocking console warning
    - Displays a helpful message on auth pages
    - Treats protected routes as public to avoid blocking usage
+
+## Environment Variable Prefix (React)
+
+Create React App only exposes environment variables prefixed with `REACT_APP_`. This app reads:
+- REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_KEY
+- Falls back to SUPABASE_URL and SUPABASE_KEY if needed (a console warning will be shown)
+- After changing `.env`, you may need to restart `npm start` or your preview session for changes to take effect.
 
 ## Canonical LMS Schema (public schema)
 
@@ -137,7 +145,7 @@ Ensure 401/403 errors return when a user violates policies; the UI will show fri
 - src/hooks/useProgress.js
   - useProgress({ userId, courseId })
 
-All Supabase operations use the client created from REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_KEY.
+All Supabase operations use the client created from environment variables via src/config/env.js.
 
 ## UI Pages
 
