@@ -30,8 +30,8 @@ Required for Supabase (actually referenced by code):
 
 Optional but supported:
 - REACT_APP_FRONTEND_URL: Public URL of this SPA, used in auth flows such as password reset redirects (used in src/auth/AuthProvider.js).
-- REACT_APP_API_BASE: Base URL for any additional backend API calls if used by your deployment (not referenced in current code by default).
-- REACT_APP_BACKEND_URL: Canonical backend URL (not referenced in current code by default).
+- REACT_APP_API_BASE: Base URL for backend API calls used by the dashboard service (preferred).
+- REACT_APP_BACKEND_URL: Fallback backend URL if REACT_APP_API_BASE is not set.
 - REACT_APP_WS_URL: WebSocket URL if your deployment uses websockets (not referenced in current code).
 - REACT_APP_NODE_ENV: Environment label for runtime diagnostics (not referenced in code).
 - REACT_APP_NEXT_TELEMETRY_DISABLED: Disables Next.js telemetry in mixed environments (not required for CRA).
@@ -45,6 +45,29 @@ Optional but supported:
 
 Note on Vite variables:
 - Some internal comments (src/config/env.js) mention VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for a Vite setup. This project uses CRA at present; set REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_KEY in .env. You do not need to define VITE_* variables unless you migrate to Vite.
+
+## Dashboard API Configuration
+
+The dashboard widgets (stat cards, checklist, donut chart, sparkline) fetch live data from configurable endpoints.
+
+Base URL resolution (in order of preference):
+1. REACT_APP_API_BASE
+2. REACT_APP_BACKEND_URL
+
+If neither is set, a user-friendly error is displayed on the dashboard, and a console warning is logged.
+
+Expected endpoints (adjust if your backend differs):
+- GET /api/dashboard/summary -> { courses, learners, completionRate, activeSessions }
+- GET /api/dashboard/progress -> { completed, inProgress, notStarted }
+- GET /api/dashboard/activity -> [ { id, title, timestamp, completed } ]
+- GET /api/dashboard/trends -> { series: number[], labels?: string[] }
+
+Example .env:
+```
+REACT_APP_API_BASE=https://api.example.com
+REACT_APP_SUPABASE_URL=...
+REACT_APP_SUPABASE_KEY=...
+```
 
 ## Roles and Access
 
@@ -135,6 +158,8 @@ Relevant helpers: src/supabase/supabaseStorage.js
 - Missing Supabase config:
   - Console warns if REACT_APP_SUPABASE_URL or REACT_APP_SUPABASE_KEY are not set.
   - Ensure .env variables are defined before running npm start or npm run build.
+- Dashboard API base:
+  - If dashboard shows "API base is not configured", set REACT_APP_API_BASE or REACT_APP_BACKEND_URL.
 - Password reset redirect:
   - If resetPassword errors, set REACT_APP_FRONTEND_URL to your app’s URL so Supabase can redirect back to the app.
 - Routing:
