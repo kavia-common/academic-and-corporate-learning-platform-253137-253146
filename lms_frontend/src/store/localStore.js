@@ -49,15 +49,24 @@ function writeLocal(key, value) {
 function getMergedCourses() {
   const fromInitial = Array.isArray(initialCourses) ? initialCourses : [];
   const overlay = readLocal(LS_KEYS.courses);
+
+  // Merge initial data with overlay (overlay by id wins)
+  let merged;
   if (Array.isArray(overlay)) {
-    // overlay new/updated courses by id, keep others
     const byId = new Map(fromInitial.map((c) => [String(c.id), c]));
     overlay.forEach((c) => {
       byId.set(String(c.id), c);
     });
-    return Array.from(byId.values());
+    merged = Array.from(byId.values());
+  } else {
+    merged = fromInitial;
   }
-  return fromInitial;
+
+  // Post-merge filter: remove specific duplicate/unwanted course titles
+  // Requirement: Remove 'Full Web Development Learning Path' from Courses area.
+  return merged.filter(
+    (c) => String(c?.title || '').trim() !== 'Full Web Development Learning Path'
+  );
 }
 
 function normalizeInitialLearningPathToArray() {

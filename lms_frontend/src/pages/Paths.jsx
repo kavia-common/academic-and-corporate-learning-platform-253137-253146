@@ -8,13 +8,27 @@ import { listCourses, subscribe } from "../store/localStore";
  * Reads from localStore overlay so Admin changes reflect immediately.
  */
 export default function Paths() {
-  const [items, setItems] = useState(() => listCourses());
+  const [items, setItems] = useState(() =>
+    listCourses().filter(
+      (c) => String(c?.title || '').trim() !== 'Full Web Development Learning Path'
+    )
+  );
 
   useEffect(() => {
     // Refresh on store updates and cross-tab storage events
-    const unsub = subscribe(() => setItems(listCourses()));
+    const unsub = subscribe(() =>
+      setItems(
+        listCourses().filter(
+          (c) => String(c?.title || '').trim() !== 'Full Web Development Learning Path'
+        )
+      )
+    );
     // Also refresh on mount to ensure latest overlay is applied
-    setItems(listCourses());
+    setItems(
+      listCourses().filter(
+        (c) => String(c?.title || '').trim() !== 'Full Web Development Learning Path'
+      )
+    );
     return () => unsub();
   }, []);
 
