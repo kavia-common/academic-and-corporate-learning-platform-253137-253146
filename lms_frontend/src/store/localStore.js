@@ -1,4 +1,5 @@
 import { courses as initialCourses, learningPath as initialLearningPath } from '../data/learningData';
+import { filterList, getDefaultExclusions, shouldExcludeItem } from '../utils/listingFilter';
 
 // Key names for localStorage (stable)
 const LS_KEYS = {
@@ -62,11 +63,9 @@ function getMergedCourses() {
     merged = fromInitial;
   }
 
-  // Post-merge filter: remove specific duplicate/unwanted course titles
-  // Requirement: Remove 'Full Web Development Learning Path' from Courses area.
-  return merged.filter(
-    (c) => String(c?.title || '').trim() !== 'Full Web Development Learning Path'
-  );
+  // Post-merge filter using centralized utility (titles/slugs)
+  const exclusions = getDefaultExclusions();
+  return filterList(merged, exclusions);
 }
 
 function normalizeInitialLearningPathToArray() {
@@ -84,15 +83,19 @@ function normalizeInitialLearningPathToArray() {
 function getMergedLearningPaths() {
   const fromInitial = normalizeInitialLearningPathToArray();
   const overlay = readLocal(LS_KEYS.learningPaths);
+  let merged;
   if (Array.isArray(overlay)) {
     // Overlay replaces/augments by id
     const byId = new Map(fromInitial.map((p) => [String(p.id), p]));
     overlay.forEach((p) => {
       byId.set(String(p.id), p);
     });
-    return Array.from(byId.values());
+    merged = Array.from(byId.values());
+  } else {
+    merged = fromInitial;
   }
-  return fromInitial;
+  const exclusions = getDefaultExclusions();
+  return filterList(merged, exclusions);
 }
 
 // Helpers to generate a client-side ID
@@ -245,7 +248,9 @@ export function getAggregatedLearningPath() {
    * exists (without courses structure), we synthesize a minimal object that renders header/cover.
    */
   const all = getMergedLearningPaths();
-  const first = all[0];
+  const exclusions = getDefaultExclusions();
+  // find first non-excluded path to display
+  const first = all.find((p) => !shouldExcludeItem(p, exclusions));
   if (!first) return null;
 
   // If it's the original seed with full courses structure, return as-is

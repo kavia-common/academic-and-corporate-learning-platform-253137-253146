@@ -28,7 +28,10 @@ export default function CourseList() {
         // Use normalized helper that always returns an array or throws
         const list = await listCoursesCompat();
         if (!mounted) return;
-        setCourses(Array.isArray(list) ? list : []);
+        // Apply centralized exclusions to backend data as well (defense-in-depth)
+        const { filterList, getDefaultExclusions } = await import('../utils/listingFilter');
+        const filtered = filterList(Array.isArray(list) ? list : [], getDefaultExclusions());
+        setCourses(filtered);
       } catch (e) {
         if (!mounted) return;
         setCourses([]);
